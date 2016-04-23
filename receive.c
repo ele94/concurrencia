@@ -236,122 +236,106 @@ int main (char argc, char *argv[]){
   //Variables para la memoria compartida
   key_t key = 0;
   size_t size = sizeof(int);
-  //int shmflg = IPC_CREAT | 0777;
-  int shmflg = SHM_R | SHM_W;
+  //int shmflg = SHM_R | SHM_W;
+  int shmflg = IPC_CREAT | 0666;
   int shmid;
   int * returnPtr;
+  char *path = "/tmp";
+  int id = 0;
+
 
   //Para compartir peticionesLectores:
-  key = 100 + 10 * id_nodo;
-
+  id = 10 + 1 * id_nodo;
+  key = ftok(path,id);
+  printf("La key es %d\n",key);
   shmid = shmget(key, 5*sizeof(int), shmflg);
+  printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
-
   peticionesLectores = returnPtr;
 
-
   //Para compartir peticionesEscritores:
-  key = 200 + 10 * id_nodo;
-
+  id = 20 + 1 * id_nodo;
+  key = ftok(path,id);
+  printf("La key es %d\n",key);
   shmid = shmget(key, 5*sizeof(int), shmflg);
+    printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
-
   peticionesEscritores = returnPtr;
 
-  
-
   //Para compartir servidosLectores
-  key = 300 + 10 * id_nodo;
-
+  id = 30 + 1 * id_nodo;
+  key = ftok(path,id);
+  printf("La key es %d\n",key);
   shmid = shmget(key, 5*sizeof(int), shmflg);
+    printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
-
   servidosLectores = returnPtr;
 
-  
-
   //Para compartir servidosEscritores
-  key = 400 + 10 * id_nodo;
-
+  id = 40 + 1 * id_nodo;
+  key = ftok(path,id);
+  printf("La key es %d\n",key);
   shmid = shmget(key, 5*sizeof(int), shmflg);
+    printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
-
   servidosEscritores = returnPtr;
 
-  
-
   //Para numero de lectores en SC
-
-  key = 500 + id_nodo;
-
+  id = 50 + 1 * id_nodo;
+  key = ftok(path,id);
+  printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
+    printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
-
   numNodLec = returnPtr;
 
-  
-
   //Para saber si tenemos el testigo
-
-  key = 600 + id_nodo;
-    
+  id = 60 + 1 * id_nodo;
+  key = ftok(path,id);
+  printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-    
+    printf("El shmid es %d\n",shmid);
+  returnPtr = (int*) shmat(shmid, NULL, 0);   
   hasToken = returnPtr;
 
- 
 
   //Para saber el número de peticiones de nuestro nodo
-
-  key = 700 + id_nodo;
-
+  id = 70 + 1 * id_nodo;
+  key = ftok(path,id);
+  printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
+    printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
-
   myNum = returnPtr;
 
-  /*Semáforo myNum(en principio innecesario)
-  key = 12000 + id_nodo;
-  sem_t * sem_myNum = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
-  */
-
   //Para saber si nuestro nodo está en SC
-
-  key = 800 + id_nodo;
-
+  id = 80 + 1 * id_nodo;
+  key = ftok(path,id);
+  printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
+    printf("El shmid es %d\n",shmid);
+  printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
-
   inSC = returnPtr;
 
-
-
   //Para saber si el representante es un lector o un escritor
-
-  key = 900 + id_nodo;
-
+  id = 90 + 1 * id_nodo;
+  key = ftok(path,id);
+  printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
+    printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
-
   lectorOEscritor = returnPtr;
 
-
-
   //Para saber si hay peticiones de otros nodos despues de que el ultimo lector salga de la SC
-
-  key = 950 + id_nodo;
-
+  id = 100 + 1 * id_nodo;
+  key = ftok(path,id);
   shmid = shmget(key, sizeof(int), shmflg);
+    printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
-
   esperandoAviso = returnPtr;
 
-
-
-
   //Colas del testigo y del aviso de peticion de testigo
-
   key_t token_key = 100;
   cola_token = msgget(token_key, shmflg);
 
@@ -360,7 +344,6 @@ int main (char argc, char *argv[]){
 
 
   //Sección internodo
-
   key_t peticion_key;
 
 
@@ -395,9 +378,10 @@ int main (char argc, char *argv[]){
     *hasToken = 1;
     printf("Felicidades! Tienes el token %d \n",*hasToken);
   }
-
-  else *hasToken = 0;
-  printf("Token inicializado\n");
+  else {
+    *hasToken = 0;
+    printf("Ooooh lo siento, no tienes el token\n");
+  }
 
    printf("Llega aqui\n");
 
