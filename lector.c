@@ -279,7 +279,7 @@ int main(char argc, char * argv[]){
   esperandoAviso = returnPtr;
 
 	
-	id = 95;
+	id = 89;
 	key = ftok(path,id);
 	int cola_token = msgget(key, 0666| IPC_CREAT);
 	printf("cola_token %d\n",cola_token);
@@ -422,6 +422,7 @@ if(id_nodo==5){
 			printf("Oooh espera, no tienes el testigo. Pidiendo el testigo...\n");
 			sem_post(sem_hasToken);
 			(*myNum)++;
+			printf("Creando una peticion para el testigo con numero %d\n",*myNum);
 			sem_wait(sem_lectorOEscritor);
 			(*lectorOEscritor) = 0;
 			sem_post(sem_lectorOEscritor);
@@ -540,7 +541,7 @@ if(id_nodo==5){
 					sem_post(sem_numNodLec);
 				
 					testigo.mtype = id_nodo_sig + 1;
-					printf("Mandando el testigo...\n");
+					printf("Mandando el testigo al proceso %d en la c ola %d...\n",id_nodo_sig+1,cola_token);
 					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
 
 					sem_wait(sem_hasToken); //repasar este semáforo

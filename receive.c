@@ -163,7 +163,10 @@ void thread_receive(void *ptr){
     //si recibimos una peticion de un escritor
     if(peticion.lectorOEscritor == 1){
       sem_wait(sem_peticionesEscritores);
-      peticionesEscritores[peticion.myID] = peticionesEscritores[peticion.myID]>peticion.myNum ? peticionesEscritores[peticion.myID] : peticion.myNum;
+      if(peticion.myNum > peticionesEscritores[peticion.myID-1]){
+        peticionesEscritores[peticion.myID-1]=peticion.myNum;
+        printf("Actualizado el numero de peticion a peticion.myNum\n");
+      }
       sem_post(sem_peticionesEscritores);
 
       sem_wait(sem_hasToken);
@@ -171,7 +174,7 @@ void thread_receive(void *ptr){
       if((*hasToken == 1)&&(*inSC == 0)) { 
          sem_post(sem_inSC);
          sem_post(sem_hasToken);
-         printf("Mandando el testigo al ID %d\n",peticion.myID);
+         printf("Entrando en el sendToken para ver si se puede mandar el testigo a %d\n",peticion.myID);
          sendToken(peticion.myID,peticion.lectorOEscritor);
       }
       else{
@@ -392,7 +395,7 @@ int main (char argc, char *argv[]){
   esperandoAviso = returnPtr;
 
   //Colas del testigo y del aviso de peticion de testigo
-  id = 95;
+  id = 89;
   key = ftok(path,id);
   cola_token = msgget(key, shmflg);
   if(cola_token == 0){
@@ -550,9 +553,12 @@ int main (char argc, char *argv[]){
   }
 
 
+
+  *lectorOEscritor = 0;  //0 lector, 1 escritor
   *esperandoAviso = 0;
   *inSC = 0;
   *numNodLec = 0;
+  *myNum = 0;
   int petLec[] = {0,0,0,0,0};
   int petEsc[] = {0,0,0,0,0};
   int servLec[] = {0,0,0,0,0};
