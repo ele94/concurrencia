@@ -150,13 +150,13 @@ void thread_receive(void *ptr){
     long msgtyp = 0;
     
     //esperamos a recibir una peticion de algun nodo
-    int p = msgrcv(msqid, (struct msgbuf *)&peticion,sizeof(peticion),0,0);
+    int p = msgrcv(msqid, (struct msgbuf *)&peticion,sizeof(peticion),id_nodo,0);
     if(p<0) {
       printf("Error al recibir el mensaje\n");
       printf("Saliendo del programa\n");
       return;
     }
-    printf("Peiticion recibida en la cola %d!\n",msqid);
+    printf("Peiticion recibida en la cola %d! del nodo %d\n",msqid,peticion.myID);
     printf("Peticion del nodo %d de tipo %d\n",data->numNodo,peticion.lectorOEscritor);
     
     sem_wait(sem_receive);
@@ -322,8 +322,8 @@ int main (char argc, char *argv[]){
   id = 30 + 1 * id_nodo;
   key = ftok(path,id);
   printf("La key es %d\n",key);
-  shmid = shmget(key, sizeof(int[5], shmflg);
-    printf("El shmid es %d\n",shmid);
+  shmid = shmget(key, sizeof(int[5]), shmflg);
+  printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
   servidosLectores = returnPtr;
 
@@ -331,7 +331,7 @@ int main (char argc, char *argv[]){
   id = 40 + 1 * id_nodo;
   key = ftok(path,id);
   printf("La key es %d\n",key);
-  shmid = shmget(key, sizeof(int[5], shmflg);
+  shmid = shmget(key, sizeof(int[5]), shmflg);
     printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
   servidosEscritores = returnPtr;
@@ -392,7 +392,7 @@ int main (char argc, char *argv[]){
   esperandoAviso = returnPtr;
 
   //Colas del testigo y del aviso de peticion de testigo
-  id = 98;
+  id = 97;
   key = ftok(path,id);
   cola_token = msgget(key, shmflg);
   if(cola_token == 0){

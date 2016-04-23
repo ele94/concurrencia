@@ -191,7 +191,7 @@ int main(char argc, char * argv[]){
   id = 10 + 1 * id_nodo;
   key = ftok(path,id);
   printf("La key es %d\n",key);
-  shmid = shmget(key, sizeof(int[5], shmflg);
+  shmid = shmget(key, sizeof(int[5]), shmflg);
   printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
   peticionesLectores = returnPtr;
@@ -200,7 +200,7 @@ int main(char argc, char * argv[]){
   id = 20 + 1 * id_nodo;
   key = ftok(path,id);
   printf("La key es %d\n",key);
-  shmid = shmget(key, sizeof(int[5], shmflg);
+  shmid = shmget(key, sizeof(int[5]), shmflg);
     printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
   peticionesEscritores = returnPtr;
@@ -209,7 +209,7 @@ int main(char argc, char * argv[]){
   id = 30 + 1 * id_nodo;
   key = ftok(path,id);
   printf("La key es %d\n",key);
-  shmid = shmget(key, sizeof(int[5], shmflg);
+  shmid = shmget(key, sizeof(int[5]), shmflg);
     printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
   servidosLectores = returnPtr;
@@ -218,7 +218,7 @@ int main(char argc, char * argv[]){
   id = 40 + 1 * id_nodo;
   key = ftok(path,id);
   printf("La key es %d\n",key);
-  shmid = shmget(key, sizeof(int[5], shmflg);
+  shmid = shmget(key, sizeof(int[5]), shmflg);
     printf("El shmid es %d\n",shmid);
   returnPtr = (int*) shmat(shmid, NULL, 0);
   servidosEscritores = returnPtr;
@@ -279,7 +279,7 @@ int main(char argc, char * argv[]){
   esperandoAviso = returnPtr;
 
 	
-	id = 98;
+	id = 97;
 	key = ftok(path,id);
 	int cola_token = msgget(key, 0666| IPC_CREAT);
 	printf("cola_token %d\n",cola_token);
