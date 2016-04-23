@@ -32,12 +32,12 @@ struct token{
 
 int main(int argc, char * argv[]){
 
-	int id_nodo = atoi(argv[1]);
-	
 	if(argc != 2){
 		perror("Error");
 		exit(1);
 	}
+
+	int id_nodo = atoi(argv[1]);
 
 	int id_nodos1[4] = {2, 3, 4, 5};				
 	int id_colas1[4] = {12 ,13 ,14, 15};
@@ -61,7 +61,6 @@ int main(int argc, char * argv[]){
 	struct token testigo;
 	struct request peticion;
 	struct warning aviso;
-
 	switch(id_nodo){
 
 		case 1: memcpy(id_nodos, id_nodos1, 4*sizeof(int));
@@ -150,6 +149,7 @@ int main(int argc, char * argv[]){
 
 	//Semáforo numNodLec
 	key = 10000 + id_nodo;
+
 	sem_t * sem_numNodLec = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
 
 	//Para saber si tenemos el testigo
@@ -158,11 +158,11 @@ int main(int argc, char * argv[]){
 		
 	shmid = shmget(key, sizeof(int), IPC_CREAT | 0777);
 	int * shm2 = (int *) shmat(shmid, NULL, 0);
-		
 	int * hasToken = shm2;
 
 	//Semáforo hasToken
 	key = 11000 + id_nodo;
+
 	sem_t * sem_hasToken = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
 
 	//Para saber el número de peticiones de nuestro nodo
@@ -173,7 +173,6 @@ int main(int argc, char * argv[]){
 	int * shm3 = (int *) shmat(shmid, NULL, 0);
 
 	int * myNum = shm3;
-
 	/*Semáforo myNum(en principio innecesario)
 	key = 12000 + id_nodo;
 	sem_t * sem_myNum = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
@@ -248,16 +247,13 @@ int main(int argc, char * argv[]){
 		sem_wait(sem_hasToken);
 		if(!(*hasToken)){
 			sem_post(sem_hasToken);
-
 			(*myNum)++;
 			sem_wait(sem_lectorOEscritor);
 			(*lectorOEscritor) = 0;
 			sem_post(sem_lectorOEscritor);
-
 			peticion.myID = id_nodo;
 			peticion.myNum = (*myNum);
 			peticion.lectorOEscritor = (*lectorOEscritor);
-
 			for(id_nodo_sig=0; id_nodo_sig<4; id_nodo_sig++){
 				request_key = id_colas[id_nodo_sig];
 				cola_request = msgget(request_key, 0777 | IPC_CREAT);
@@ -274,12 +270,10 @@ int main(int argc, char * argv[]){
 		sem_wait(sem_hasToken);
 		*hasToken = 1;
 		sem_post(sem_hasToken);
-
 		sem_wait(sem_numNodLec);
 		*numNodLec = testigo.numNodLec;
 		(*numNodLec)++;
 		sem_post(sem_numNodLec);
-
 		sem_wait(sem_inSC);
 		*inSC = 1;
 		sem_post(sem_inSC);
@@ -291,7 +285,6 @@ int main(int argc, char * argv[]){
 		sem_wait(sem_servidosLectores);
 		servidosLectores[id_nodo-1] = (*myNum);
 		sem_post(sem_servidosLectores);
-
 		sem_wait(sem_hasToken);
 		if(!(*hasToken)){
 			sem_post(sem_hasToken);

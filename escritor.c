@@ -35,13 +35,13 @@ struct token{
 
 int main(int argc, char * argv[]){
 
-	int id_nodo = atoi(argv[1]);
-	
 	if(argc != 2){
 		perror("Error");
 		exit(1);
 	}
 
+	int id_nodo = atoi(argv[1]);
+	
 	int id_nodos1[4] = {2, 3, 4, 5};				
 	int id_colas1[4] = {12 ,13 ,14, 15};
 
@@ -108,7 +108,7 @@ int main(int argc, char * argv[]){
 	//Para compartir peticionesEscritores:
 	key = 10000 + 1050 * id_nodo;
 
-	shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0666 );
+	shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0777 );
 	int * shm_petesc = (int *) shmat(shmid, NULL, 0);
 
 	int * peticionesEscritores = shm_petesc;
@@ -121,7 +121,7 @@ int main(int argc, char * argv[]){
 	//Para compartir servidosLectores
 	key = 10000 + 1100 * id_nodo;
 
-	shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0666 );
+	shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0777 );
 	int * shm_servlec = (int *) shmat(shmid, NULL, 0);
 
 	int * servidosLectores = shm_servlec;
@@ -133,7 +133,7 @@ int main(int argc, char * argv[]){
 	//Para compartir servidosEscritores
 	key = 10000 + 1150 * id_nodo;
 
-	shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0666 );
+	shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0777 );
 	int * shm_servesc = (int *) shmat(shmid, NULL, 0);
 
 	int * servidosEscritores = shm_servesc;
@@ -146,7 +146,7 @@ int main(int argc, char * argv[]){
 
 	key = 1000 + id_nodo;
 
-	shmid = shmget(key, sizeof(int), IPC_CREAT | 0666 );
+	shmid = shmget(key, sizeof(int), IPC_CREAT | 0777 );
 	int * shm1 = (int *) shmat(shmid, NULL, 0);
 
 	int * numNodLec = shm1;
@@ -159,7 +159,7 @@ int main(int argc, char * argv[]){
 
 	key = 1100 + id_nodo;
 		
-	shmid = shmget(key, sizeof(int), IPC_CREAT | 0666 );
+	shmid = shmget(key, sizeof(int), IPC_CREAT | 0777 );
 	int * shm2 = (int *) shmat(shmid, NULL, 0);
 		
 	int * hasToken = shm2;
@@ -172,7 +172,7 @@ int main(int argc, char * argv[]){
 
 	key = 1200 + id_nodo;
 
-	shmid = shmget(key, sizeof(int), IPC_CREAT | 0666 );
+	shmid = shmget(key, sizeof(int), IPC_CREAT | 0777 );
 	int * shm3 = (int *) shmat(shmid, NULL, 0);
 
 	int * myNum = shm3;
@@ -186,7 +186,7 @@ int main(int argc, char * argv[]){
 
 	key = 1300 + id_nodo;
 
-	shmid = shmget(key, sizeof(int), IPC_CREAT | 0666 );
+	shmid = shmget(key, sizeof(int), IPC_CREAT | 0777 );
 	int * shm4 = (int *) shmat(shmid, NULL, 0);
 
 	int * inSC = shm4;
@@ -199,7 +199,7 @@ int main(int argc, char * argv[]){
 
 	key = 1400 + id_nodo;
 
-	shmid = shmget(key, sizeof(int), IPC_CREAT | 0666 );
+	shmid = shmget(key, sizeof(int), IPC_CREAT | 0777 );
 	int * shm5 = (int *) shmat(shmid, NULL, 0);
 
 	int * lectorOEscritor = shm5;
@@ -212,7 +212,7 @@ int main(int argc, char * argv[]){
 
 	key = 1500 + id_nodo;
 
-	shmid = shmget(key, sizeof(int), IPC_CREAT | 0666 );
+	shmid = shmget(key, sizeof(int), IPC_CREAT | 0777 );
 	int * shm6 = (int *) shmat(shmid, NULL, 0);
 
 	int * esperandoAviso = shm6;
@@ -276,9 +276,9 @@ int main(int argc, char * argv[]){
 		printf("Escritor escribiendo.... Pulse la tecla ENTER para salir de la sección crítica.\n");
 		int salir = getchar();
 
-		sem_wait(servidosEscritores);
+		sem_wait(sem_servidosEscritores);
 		servidosEscritores[id_nodo-1] = (*myNum);
-		sem_post(servidosEscritores);
+		sem_post(sem_servidosEscritores);
 
 		sem_wait(sem_inSC);
 		*inSC = 0;

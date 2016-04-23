@@ -95,7 +95,7 @@ int main (int argc,char *argv[]){
 
 	key0=300+i;
 
-	shmid0=shmget(key0,sizeof(int),IPC_CREAT | 0666);
+	shmid0=shmget(key0,sizeof(int),IPC_CREAT | 0777);
 	if(shmid0<0){
 	        perror("shmget");
 	        exit(1);
@@ -113,7 +113,7 @@ int main (int argc,char *argv[]){
 
 	key1=400 + i;
 
-	shmid1=shmget(key1,sizeof(int),IPC_CREAT | 0666);
+	shmid1=shmget(key1,sizeof(int),IPC_CREAT | 0777);
 
 	if(shmid1<0){
 	        perror("shmget");
@@ -132,7 +132,7 @@ int main (int argc,char *argv[]){
 
         key2=500 + i;
 
-        shmid2=shmget(key2,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid2=shmget(key2,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid2<0){
                 perror("shmget");
@@ -151,7 +151,7 @@ int main (int argc,char *argv[]){
   
         key3=600 + i;
 
-        shmid3=shmget(key3,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid3=shmget(key3,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid3<0){
                 perror("shmget");
@@ -170,7 +170,7 @@ int main (int argc,char *argv[]){
         //PETICIONES LECTORES
         key = 100000 + 1000 * id_nodo;
 
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid<0){
                 perror("shmget");
@@ -188,7 +188,7 @@ int main (int argc,char *argv[]){
         //PETICIONES ESCRITORES
         key = 100000 + 1050 * id_nodo;
 
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid<0){
                 perror("shmget");
@@ -207,7 +207,7 @@ int main (int argc,char *argv[]){
         //SERVIDOS LECTORES
         key = 100000 + 1100 * id_nodo;
 
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid<0){
                 perror("shmget");
@@ -226,7 +226,7 @@ int main (int argc,char *argv[]){
         //SERVIDOS ESCRITORES
         key = 100000 + 1150 * id_nodo;
 
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid<0){
                 perror("shmget");
@@ -245,7 +245,7 @@ int main (int argc,char *argv[]){
         //NUM NOD LEC
         key = 10000 + id_nodo;
 
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid<0){
                 perror("shmget");
@@ -264,7 +264,7 @@ int main (int argc,char *argv[]){
 
         key = 11000 + id_nodo;
 
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid<0){
                 perror("shmget");
@@ -284,7 +284,7 @@ int main (int argc,char *argv[]){
 
         key = 13000 + id_nodo;
 
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid<0){
                 perror("shmget");
@@ -304,7 +304,7 @@ int main (int argc,char *argv[]){
 
         key = 14000 + id_nodo;
 
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid<0){
                 perror("shmget");
@@ -324,7 +324,7 @@ int main (int argc,char *argv[]){
 
         key = 15000 + id_nodo;
 
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
+        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0777);
 
         if(shmid<0){
                 perror("shmget");
@@ -346,6 +346,14 @@ int main (int argc,char *argv[]){
 
   sem_destroy(sem2);
   sem_destroy(sem3);
+  sem_destroy(sem_peticionesLectores);
+  sem_destroy(sem_peticionesEscritores);
+  sem_destroy(sem_servidosLectores);
+  sem_destroy(sem_servidosEscritores);
+  sem_destroy(sem_lectorOEscritor);
+  sem_destroy(sem_inSC);
+  sem_destroy(sem_hasToken);
+  sem_destroy(sem_numNodLec);
  
   return 0;
 

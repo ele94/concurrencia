@@ -43,8 +43,8 @@ sem_t  sem_receive;
 //struct que se le pasa a los threads
 typedef struct thdata_th{
   pthread_t id_hilo;
-  int * numNodo;
-  int * msqid;
+  int numNodo;
+  int msqid;
 } thdata;
 
 typedef struct request_th{
@@ -160,25 +160,14 @@ void thread_receive(void *ptr){
 
 int main(int argc, char* argv[]){
   
-  
+ 
   if(argc != 2){
     printf("Error: falta el ID\n");
     return 0;
   }
 
- id_nodo = atoi(argv[1]);
-
-  numNodLec = 0;
-  hasToken = 0;
-  myNum = 0;
-  inSC = 0;
-  lectorOEscritor = 1;
-  esperandoAviso = 0;
-
-  if(id_nodo == 1){
-    hasToken = 1;
-  }
-
+id_nodo = atoi(argv[1]);
+  
   int id_nodos1[4] = {2, 3, 4, 5};        
   int id_colas1[4] = {12 ,13 ,14, 15};
 
@@ -374,7 +363,6 @@ int main(int argc, char* argv[]){
   sem_init(&sem_receive,0,1);
 
 
-
   //THREADS
 
   pthread_t thread[4];
@@ -389,7 +377,7 @@ int main(int argc, char* argv[]){
    cola_peticion = msgget(peticion_key, 0777 | IPC_CREAT);
 	data[i].numNodo = i+1;
    data[i].msqid = cola_peticion;
-	pthread_create(&(data[i].id_hilo), NULL,&thread_receive, &data[i]);
+	pthread_create(&(data[i].id_hilo), NULL,(void *)&thread_receive,(void *)&data[i]);
   printf("Creado el thread %i\n", i);
   }
   
