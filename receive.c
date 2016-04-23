@@ -8,6 +8,21 @@
 #include <string.h>
 #include <semaphore.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <sys/shm.h>
+
+#define SEM_PETLEC "/peticionesLectores"
+#define SEM_PETESC "/peticionesEscritores"
+#define SEM_SERVLEC "/servidosLectores"
+#define SEM_SERVESC "/servidosEscritores"
+#define SEM_NUMNODLEC "/numNodosLectores"
+#define SEM_HASTOKEN "/hasToken"
+#define SEM_INSC "/inSC"
+#define SEM_LECESC "/lectorOEscritor"
+#define SEM_AVISO "/esperandoAviso"
+#define SEM_RECEIVE "/receive"
 
 
 //memoria compartida a nivel de nodo: punteros a esa memoria
@@ -38,7 +53,7 @@ sem_t * sem_hasToken;
 sem_t * sem_inSC;
 sem_t * sem_lectorOEscritor;
 sem_t * sem_esperandoAviso;
-sem_t  sem_receive;
+sem_t * sem_receive;
 
 //struct que se le pasa a los threads
 typedef struct thdata_th{
@@ -93,7 +108,7 @@ void thread_receive(void *ptr){
     msgrcv(msqid, (struct msgbuf *)&peticion,sizeof(peticion),(long)id_nodo,0);
     printf("Peticion del nodo %d de tipo %d",data->numNodo,peticion.lectorOEscritor);
     
-    sem_wait(&sem_receive);
+    sem_wait(sem_receive);
     //si recibimos una peticion de un escritor
     if(peticion.lectorOEscritor == 1){
       sem_wait(sem_peticionesEscritores);
@@ -122,7 +137,7 @@ void thread_receive(void *ptr){
       sem_wait(sem_hasToken);
       if(*hasToken == 1){
          sem_post(sem_hasToken);
-         if(peticion.lectorOEscritor == 0){
+         if(lectorOEscritor == 0){
             sem_wait(sem_esperandoAviso);
             if(*esperandoAviso == 1) {
             sem_post(sem_esperandoAviso);
@@ -148,7 +163,7 @@ void thread_receive(void *ptr){
       }
     }
     
-   sem_post(&sem_receive);
+   sem_post(sem_receive);
   }
   
 }
@@ -158,15 +173,15 @@ void thread_receive(void *ptr){
 
 //Lanzar receive: nº nodo
 
-int main(int argc, char* argv[]){
-  
- 
-  if(argc != 2){
+int main (char argc, char *argv[]){
+
+  if(argc < 2){
     printf("Error: falta el ID\n");
     return 0;
   }
+  else id_nodo = atoi(argv[1]);
 
-id_nodo = atoi(argv[1]);
+  printf("Tu id es %d",id_nodo);
   
   int id_nodos1[4] = {2, 3, 4, 5};        
   int id_colas1[4] = {12 ,13 ,14, 15};
@@ -218,90 +233,83 @@ id_nodo = atoi(argv[1]);
 
   // Variables compartidas
 
+  //Variables para la memoria compartida
+  key_t key = 0;
+  size_t size = sizeof(int);
+  //int shmflg = IPC_CREAT | 0777;
+  int shmflg = SHM_R | SHM_W;
+  int shmid;
+  int * returnPtr;
+
   //Para compartir peticionesLectores:
-  key_t key = 10000 + 1000 * id_nodo;
+  key = 100 + 10 * id_nodo;
 
-  int shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0777);
-  int * shm_petlec = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, 5*sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
 
-  peticionesLectores = shm_petlec;
+  peticionesLectores = returnPtr;
 
-  //Semáforo peticionesLectores
-  key = 100000 + 1000 * id_nodo;
-  sem_peticionesLectores = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
-  
 
   //Para compartir peticionesEscritores:
-  key = 10000 + 1050 * id_nodo;
+  key = 200 + 10 * id_nodo;
 
-  shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0777);
-  int * shm_petesc = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, 5*sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
 
-  peticionesEscritores = shm_petesc;
+  peticionesEscritores = returnPtr;
 
-  //Semáforo peticionesEscritores
-  key = 100000 + 1050 * id_nodo;
-  sem_peticionesEscritores = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
   
 
   //Para compartir servidosLectores
-  key = 10000 + 1100 * id_nodo;
+  key = 300 + 10 * id_nodo;
 
-  shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0777);
-  int * shm_servlec = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, 5*sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
 
-  servidosLectores = shm_servlec;
+  servidosLectores = returnPtr;
 
-  //Semáforo servidosLectores
-  key = 100000 + 1100 * id_nodo;
-  sem_servidosLectores = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
+  
 
   //Para compartir servidosEscritores
-  key = 10000 + 1150 * id_nodo;
+  key = 400 + 10 * id_nodo;
 
-  shmid = shmget(key, 5*sizeof(int), IPC_CREAT | 0777);
-  int * shm_servesc = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, 5*sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
 
-  servidosEscritores = shm_servesc;
+  servidosEscritores = returnPtr;
 
-  //Semáforo servidosEscritores
-  key = 100000 + 1150 * id_nodo;
-  sem_servidosEscritores = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
+  
 
   //Para numero de lectores en SC
 
-  key = 1000 + id_nodo;
+  key = 500 + id_nodo;
 
-  shmid = shmget(key, sizeof(int), IPC_CREAT | 0777);
-  int * shm1 = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
 
-  numNodLec = shm1;
+  numNodLec = returnPtr;
 
-  //Semáforo numNodLec
-  key = 10000 + id_nodo;
-  sem_numNodLec = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
+  
 
   //Para saber si tenemos el testigo
 
-  key = 1100 + id_nodo;
+  key = 600 + id_nodo;
     
-  shmid = shmget(key, sizeof(int), IPC_CREAT | 0777);
-  int * shm2 = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
     
-  hasToken = shm2;
+  hasToken = returnPtr;
 
-  //Semáforo hasToken
-  key = 11000 + id_nodo;
-  sem_hasToken = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
+ 
 
   //Para saber el número de peticiones de nuestro nodo
 
-  key = 1200 + id_nodo;
+  key = 700 + id_nodo;
 
-  shmid = shmget(key, sizeof(int), IPC_CREAT | 0777);
-  int * shm3 = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
 
-  myNum = shm3;
+  myNum = returnPtr;
 
   /*Semáforo myNum(en principio innecesario)
   key = 12000 + id_nodo;
@@ -310,60 +318,100 @@ id_nodo = atoi(argv[1]);
 
   //Para saber si nuestro nodo está en SC
 
-  key = 1300 + id_nodo;
+  key = 800 + id_nodo;
 
-  shmid = shmget(key, sizeof(int), IPC_CREAT | 0777);
-  int * shm4 = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
 
-  inSC = shm4;
+  inSC = returnPtr;
 
-  //Semáforo inSC
-  key = 13000 + id_nodo;
-  sem_inSC = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
+
 
   //Para saber si el representante es un lector o un escritor
 
-  key = 1400 + id_nodo;
+  key = 900 + id_nodo;
 
-  shmid = shmget(key, sizeof(int), IPC_CREAT | 0777);
-  int * shm5 = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
 
-  lectorOEscritor = shm5;
+  lectorOEscritor = returnPtr;
 
-  //Semáforo lectorOEscritor
-  key = 14000 + id_nodo;
-  sem_lectorOEscritor = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);
+
 
   //Para saber si hay peticiones de otros nodos despues de que el ultimo lector salga de la SC
 
-  key = 1500 + id_nodo;
+  key = 950 + id_nodo;
 
-  shmid = shmget(key, sizeof(int), IPC_CREAT | 0777);
-  int * shm6 = (int *) shmat(shmid, NULL, 0);
+  shmid = shmget(key, sizeof(int), shmflg);
+  returnPtr = (int*) shmat(shmid, NULL, 0);
 
-  esperandoAviso = shm6;
+  esperandoAviso = returnPtr;
 
-  //Semáforo lectorOEscritor
-  key = 15000 + id_nodo;
-  sem_esperandoAviso = (sem_t *) shmat(shmget(key, sizeof(sem_t), 0777 | IPC_CREAT), NULL, 0);  
+
+
 
   //Colas del testigo y del aviso de peticion de testigo
 
   key_t token_key = 100;
-  cola_token = msgget(token_key, 0777 | IPC_CREAT);
+  cola_token = msgget(token_key, shmflg);
 
   key_t warning_key = 150 + id_nodo;
-  cola_warning = msgget(warning_key, 0777 | IPC_CREAT);
+  cola_warning = msgget(warning_key, shmflg);
 
 
   //Sección internodo
 
   key_t peticion_key;
 
-  sem_init(&sem_receive,0,1);
+
+
+  //SEMAFOROS (los he movido todos aqui para que sean faciles de mover)
+  //Semáforo peticionesLectores
+  sem_peticionesLectores = sem_open(SEM_PETLEC, O_CREAT, 0644, 1);
+  //Semáforo peticionesEscritores
+  sem_peticionesEscritores = sem_open(SEM_PETESC, O_CREAT, 0644, 1);
+  //Semáforo servidosLectores
+  sem_servidosLectores = sem_open(SEM_SERVLEC, O_CREAT, 0644, 1);
+  //Semáforo servidosEscritores
+  sem_servidosEscritores = sem_open(SEM_SERVESC, O_CREAT, 0644, 1);
+  //Semáforo numNodLec
+  sem_numNodLec = sem_open(SEM_NUMNODLEC, O_CREAT, 0644, 1);
+  //Semáforo hasToken
+  sem_hasToken = sem_open(SEM_HASTOKEN, O_CREAT, 0644, 1);
+  //Semáforo inSC
+  sem_inSC= sem_open(SEM_INSC, O_CREAT, 0644, 1);
+  //Semáforo lectorOEscritor
+  sem_lectorOEscritor = sem_open(SEM_LECESC, O_CREAT, 0644, 1);
+  //Semáforo espernadoAviso
+  sem_esperandoAviso = sem_open(SEM_AVISO, O_CREAT, 0644, 1);
+  //Semaforo receive
+  sem_receive = sem_open(SEM_RECEIVE, O_CREAT, 0644, 1);
+
 
 
   //THREADS
+  printf("A punto de inicializar token\n");
+  if(id_nodo == 1){
+    *hasToken = 1;
+    printf("Felicidades! Tienes el token %d \n",*hasToken);
+  }
+
+  else *hasToken = 0;
+  printf("Token inicializado\n");
+
+   printf("Llega aqui\n");
+
+  *esperandoAviso = 0;
+  *inSC = 0;
+  *numNodLec = 0;
+  int petLec[] = {0,0,0,0,0};
+  int petEsc[] = {0,0,0,0,0};
+  int servLec[] = {0,0,0,0,0};
+  int servEsc[] = {0,0,0,0,0};
+  //*peticionesLectores = petLec;
+  //printf("Las peticiones de lectores en el nodo 1 son %d \n",peticionesLectores[0]);
+
+
 
   pthread_t thread[4];
   thdata *data;
@@ -375,7 +423,7 @@ id_nodo = atoi(argv[1]);
   for(i = 0; i<4;i++){
    peticion_key = id_colas[i];   
    cola_peticion = msgget(peticion_key, 0777 | IPC_CREAT);
-	data[i].numNodo = i+1;
+	data[i].numNodo = id_nodos[i];
    data[i].msqid = cola_peticion;
 	pthread_create(&(data[i].id_hilo), NULL,(void *)&thread_receive,(void *)&data[i]);
   printf("Creado el thread %i\n", i);
