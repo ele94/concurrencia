@@ -392,7 +392,7 @@ int main (char argc, char *argv[]){
   esperandoAviso = returnPtr;
 
   //Colas del testigo y del aviso de peticion de testigo
-  id = 97;
+  id = 95;
   key = ftok(path,id);
   cola_token = msgget(key, shmflg);
   if(cola_token == 0){
@@ -657,6 +657,7 @@ if(*lectorOEscritor==0){
           *hasToken = 0;
           sem_post(sem_hasToken); //repasar este semáforo
         } else {
+          sem_post(sem_hasToken);
         }
       }
     }

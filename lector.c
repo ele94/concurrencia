@@ -279,7 +279,7 @@ int main(char argc, char * argv[]){
   esperandoAviso = returnPtr;
 
 	
-	id = 97;
+	id = 95;
 	key = ftok(path,id);
 	int cola_token = msgget(key, 0666| IPC_CREAT);
 	printf("cola_token %d\n",cola_token);
@@ -481,10 +481,11 @@ if(id_nodo==5){
 			
 			for(id_nodo_sig=0; id_nodo_sig<4; id_nodo_sig++){
 			printf("Pidiendo el testigo en la cola %d con mi id %d\n",msqid_colas[id_nodo_sig],id_nodo);
-				peticion.mtype = id_nodo;
+				peticion.mtype = id_nodos[id_nodo_sig];
 				msgsnd(msqid_colas[id_nodo_sig], (struct msgbuf *) &peticion, sizeof(peticion), 0);
 			}
 			printf("Intentando salir...\n");
+			printf("Espernado por el testigo en la cola %d con tipo %d\n",cola_token,id_nodo);
 			msgrcv(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), (long)id_nodo, 0);
 			printf("Testigo recibido! Ahora ya nadie podra interponerse en tu camino\n");
 
