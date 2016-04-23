@@ -9,6 +9,17 @@
 #include <unistd.h>
 #include <semaphore.h>
 
+#define SEM_PETLEC "/peticionesLectores"
+#define SEM_PETESC "/peticionesEscritores"
+#define SEM_SERVLEC "/servidosLectores"
+#define SEM_SERVESC "/servidosEscritores"
+#define SEM_NUMNODLEC "/numNodosLectores"
+#define SEM_HASTOKEN "/hasToken"
+#define SEM_INSC "/inSC"
+#define SEM_LECESC "/lectorOEscritor"
+#define SEM_AVISO "/esperandoAviso"
+#define SEM_RECEIVE "/receive"
+
 struct request{
 	long mtype;
 	int myID;
