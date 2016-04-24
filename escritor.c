@@ -434,7 +434,7 @@ if(id_nodo==5){
 
 		/************************************ INICIO DEL PREPROTOCOLO DE INTRANODO ******************************/
 
-	printf("Escritor en el nodo %i sin hacer nada\n",id_nodo);
+	printf("Escritor en el nodo %i sin hacer nada. Pulsa ENTER para ponerte a la cola\n",id_nodo);
 	getchar();
 	printf("Escritor en la cola del nodo %i\n", id_nodo);
 
@@ -450,7 +450,6 @@ if(id_nodo==5){
 	sem_post(sem);
 
 	printf("Hay %i escritores en la cola\n", escritoresEnCola[0]);
-	printf("Algoritmo internodo\n");
 
 
 		/************************************* FIN DEL PREPROTOCOLO DE INTRANODO ******************************/
@@ -465,7 +464,7 @@ if(id_nodo==5){
 		if(!(*hasToken)){
 			sem_post(sem_hasToken);
 			(*myNum)++;
-			printf("Creada una peticion con numero %d\n",*myNum);
+			//printf("Creada una peticion con numero %d\n",*myNum);
 			sem_wait(sem_lectorOEscritor);
 			*lectorOEscritor = 1;
 			sem_post(sem_lectorOEscritor);
@@ -486,7 +485,7 @@ if(id_nodo==5){
 			printf("Esperando por el testigo en la cola %d con mi id %d\n",cola_token,id_nodo);
 			msgrcv(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), (long)id_nodo, 0);
 			printf("Testigo recibido! Menos mal, ya estaba empezando a cansarme...\n");
-			printf("Actualizando lectores y escritores servidos en el proceso...\n");
+			//printf("Actualizando lectores y escritores servidos en el proceso...\n");
 
 			sem_wait(sem_servidosEscritores);
 		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
@@ -526,7 +525,7 @@ if(id_nodo==5){
 
 		/*********************************************** INICIO DEL POSTPROTOCOLO *************************************************/
 
-		printf("Actualizando variables de servidos...\n");
+		//printf("Actualizando variables de servidos...\n");
 
 		sem_wait(sem_servidosEscritores);
 		servidosEscritores[id_nodo-1] = (*myNum);
@@ -537,7 +536,7 @@ if(id_nodo==5){
 		sem_post(sem_inSC);
 
 		//sendToken()
-		printf("Actualizando peticiones servidas en el token...\n");
+		//printf("Actualizando peticiones servidas en el token...\n");
 		sem_wait(sem_servidosLectores);
 		memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
 		sem_post(sem_servidosLectores);
@@ -550,10 +549,10 @@ if(id_nodo==5){
 		testigo.numNodLec = (*numNodLec);
 		sem_post(sem_numNodLec);
 
-		printf("Entrando en el sendToken. Comprobando si hay peticiones que atender...\n");
+		printf("Comprobando si hay peticiones que atender...\n");
 		for(id_nodo_sig=0; id_nodo_sig < 5; id_nodo_sig++){
 			if( (id_nodo_sig + 1) == id_nodo ) continue;
-			printf("El id del nodo a analizar ahora es %d\n",id_nodo_sig);
+			//printf("El id del nodo a analizar ahora es %d\n",id_nodo_sig);
 
 			sem_wait(sem_peticionesEscritores);
 			if(peticionesEscritores[id_nodo_sig] > servidosEscritores[id_nodo_sig]){
@@ -621,6 +620,5 @@ if(id_nodo==5){
 		msgsnd(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),0);
 	}
 	sem_post(sem);
-	printf("Algoritmo internodo\n");
 	}
 }

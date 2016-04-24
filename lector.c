@@ -481,12 +481,11 @@ int id_cola_aux[1];
 
 		//****************** INICIO DEL PREPROTOCOLO DEL INTRANODO ********************************//
 
-			printf("Lector en el nodo %i sin hacer nada\n",id_nodo);
+		printf("Lector en el nodo %i sin hacer nada. Pulsa ENTER para ponerte a la cola\n",id_nodo);
         getchar();
         printf("Lector en la cola del nodo %i\n", id_nodo);
 		msgrcv(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),(long)3,0 | MSG_EXCEPT);
 		if(permisoSC.tipo == 1){
-		printf("Algoritmo internodo\n");
 		printf("Eres el primer lector! Accediendo a la seccion critica internodo...\n");
 	
 
@@ -503,7 +502,7 @@ int id_cola_aux[1];
 			printf("Oooh espera, no tienes el testigo. Pidiendo el testigo...\n");
 			sem_post(sem_hasToken);
 			(*myNum)++;
-			printf("Creando una peticion para el testigo con numero %d\n",*myNum);
+			//printf("Creando una peticion para el testigo con numero %d\n",*myNum);
 			sem_wait(sem_lectorOEscritor);
 			(*lectorOEscritor) = 0;
 			sem_post(sem_lectorOEscritor);
@@ -523,7 +522,7 @@ int id_cola_aux[1];
 			printf("Esperando por el testigo en la cola %d con mi id %d\n",cola_token,id_nodo);
 			msgrcv(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), (long)id_nodo, 0);
 			printf("Testigo recibido! Menos mal, tanto tiempo esperando...\n");
-			printf("Actualizando lectores y escritores servidos en el proceso...\n");
+			//printf("Actualizando lectores y escritores servidos en el proceso...\n");
 
 			sem_wait(sem_servidosEscritores);
 		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
@@ -534,14 +533,14 @@ int id_cola_aux[1];
 		 	sem_post(sem_servidosLectores);
 
 		 	(*numNodLec) = testigo.numNodLec;
-		 	printf("Actualizando servidosLectores ahora que hemos recibido el testigo...\n");
+		 	//printf("Actualizando servidosLectores ahora que hemos recibido el testigo...\n");
 
 		 	sem_wait(sem_servidosLectores);
 		 	servidosLectores[id_nodo-1] = (*myNum);
 		 	sem_post(sem_servidosLectores);
 
 		 	*numNodLec = testigo.numNodLec;
-		 	printf("Numero de lectores leyendo: %d\n",*numNodLec);
+		 	//printf("Numero de lectores leyendo: %d\n",*numNodLec);
 
 		} else {
 			printf("Tienes el testigo! Que suerte!\n");
@@ -553,7 +552,7 @@ int id_cola_aux[1];
 		sem_post(sem_hasToken);
 		sem_wait(sem_numNodLec);
 		(*numNodLec)++;
-		printf("Numero de lectores leyendo conmigo: %d\n",*numNodLec);
+		//printf("Numero de lectores leyendo conmigo: %d\n",*numNodLec);
 		sem_post(sem_numNodLec);
 		sem_wait(sem_inSC);
 		*inSC = 1;
@@ -562,7 +561,7 @@ int id_cola_aux[1];
 		
 		//SENDTOKEN
 				//sendToken()
-		printf("Comprobando si hay peticiones de lectores pendientes...\n");
+		printf("Comprobando si hay peticiones de nodos lectores pendientes...\n");
 		sem_wait(sem_servidosLectores);
 		 memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
 		sem_post(sem_servidosLectores);
@@ -571,7 +570,7 @@ int id_cola_aux[1];
 		 memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
 		sem_post(sem_servidosEscritores);
 		
-		printf("Actualizando numero de lectores en el token...\n");
+		//printf("Actualizando numero de lectores en el token...\n");
 		sem_wait(sem_numNodLec);
 		testigo.numNodLec = (*numNodLec);
 		sem_post(sem_numNodLec);
@@ -620,9 +619,9 @@ int id_cola_aux[1];
 	
 		permisoSC.tipo=2;
 		msgsnd(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),0);
-        printf("Hay %i lectores en la cola\n" ,numLec[0]);
+        //printf("Hay %i lectores en la cola\n" ,numLec[0]);
 
-        printf("Lector leyendo en el nodo %i\n", id_nodo);
+        printf("Lector leyendo en el nodo %i.... pulsa ENTER para salir de la seccion critica\n", id_nodo);
 		getchar();
 
 		/****************************************** FIN DEL PREPROTOCOLO INTRANODO SEGUNDA PARTE *******************/
@@ -633,7 +632,7 @@ int id_cola_aux[1];
         numLec[0]--;
 		sem_post(sem);
         
-		printf("Hay %i lectores en la cola\n", numLec[0]);
+		//printf("Hay %i lectores en la cola\n", numLec[0]);
 	
 		sem_wait(sem);
 		if(numLec[0]){
@@ -641,7 +640,7 @@ int id_cola_aux[1];
                 msgsnd(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),0);
         }
         else{
-        	printf("Algoritmo postprotocolo\n");
+        	//printf("Algoritmo postprotocolo\n");
 		
 		/*******************************************  FIN DEL PREPROTOCOLO ****************************************************/
 
@@ -685,7 +684,7 @@ int id_cola_aux[1];
 			printf("Espernado por el testigo en la cola %d con tipo %d\n",cola_token,id_nodo);
 			msgrcv(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), (long)id_nodo, 0);
 			printf("Testigo recibido! Ahora ya nadie podra interponerse en tu camino\n");
-			printf("Actualizando lectores y escritores servidos en el proceso...\n");
+			//printf("Actualizando lectores y escritores servidos en el proceso...\n");
 
 			sem_wait(sem_servidosEscritores);
 		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
@@ -699,7 +698,7 @@ int id_cola_aux[1];
 		 	(*numNodLec) = testigo.numNodLec;
 		 	sem_post(sem_numNodLec);
 
-		 	printf("Actualizando servidosLectores ahora que hemos recibido el testigo...\n");
+		 	//printf("Actualizando servidosLectores ahora que hemos recibido el testigo...\n");
 		 	sem_wait(sem_servidosLectores);
 		 	servidosLectores[id_nodo-1] = (*myNum);
 		 	sem_post(sem_servidosLectores);
@@ -724,7 +723,7 @@ int id_cola_aux[1];
 		sem_post(sem_inSC);
 
 		//sendToken()
-		printf("Actualizando peticiones servidas...\n");
+		//printf("Actualizando peticiones servidas...\n");
 		sem_wait(sem_servidosLectores);
 		memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
 		sem_post(sem_servidosLectores);
@@ -733,7 +732,7 @@ int id_cola_aux[1];
 		memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
 		sem_post(sem_servidosEscritores);
 		
-		printf("Actualizando numero de lectores en el token...\n");
+		//printf("Actualizando numero de lectores en el token...\n");
 		sem_wait(sem_numNodLec);
 		testigo.numNodLec = (*numNodLec);
 		sem_post(sem_numNodLec);
@@ -752,7 +751,7 @@ int id_cola_aux[1];
 
 				sem_wait(sem_numNodLec);
 				if((*numNodLec) == 0){
-					printf("El numero de lectores es %d\n",*numNodLec);
+					//printf("El numero de lectores es %d\n",*numNodLec);
 					sem_post(sem_numNodLec);
 				
 					testigo.mtype = id_nodo_sig + 1;
@@ -767,7 +766,7 @@ int id_cola_aux[1];
 					*hasToken = 0;
 					sem_post(sem_hasToken); //repasar este semáforo
 				} else {
-					printf("No se puede mandar el testigo porque l numero de lectores leyendo es %d\n",*numNodLec);
+					printf("No se puede mandar el testigo porque el numero de lectores leyendo es %d\n",*numNodLec);
 					sem_post(sem_numNodLec);
 
 					break;
@@ -818,11 +817,11 @@ int id_cola_aux[1];
 					printf("Esperando aviso...\n");
 					*esperandoAviso = 1;
 					sem_post(sem_esperandoAviso);
-					printf("No se para por culpa del semaforo palabrita del nino jesus\n");
+					//printf("No se para por culpa del semaforo palabrita del nino jesus\n");
 
 					//msgrcv(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0, 0);
 					sem_wait(sem_aviso);
-					printf("Aviso recibido! Continuando ejecucion...\n");
+					printf("Aviso recibido! Saliendo de la seccion critica...\n");
 
 					sem_wait(sem_esperandoAviso);
 					*esperandoAviso = 0;

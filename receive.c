@@ -569,7 +569,7 @@ int main (char argc, char *argv[]){
 
   //Inicializacion de variables compartidas
   //aqui habria que mete rsemaforos...
-  printf("A punto de inicializar token\n");
+  //printf("A punto de inicializar token\n");
   if(id_nodo == 1){
     sem_wait(sem_hasToken);
     *hasToken = 1;
@@ -667,8 +667,8 @@ void sendToken(int id_nodoReq, int tipoReq, int numReq){
   sem_wait(sem_lectorOEscritor);
   if(*lectorOEscritor==0){
     sem_post(sem_lectorOEscritor);
-    printf("Soy un nodo lector y he recibido una peticion\n");
-    printf("Actualizando peticiones servidas\n");
+    //printf("Soy un nodo lector y he recibido una peticion\n");
+    //printf("Actualizando peticiones servidas\n");
     sem_wait(sem_servidosLectores);
     memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
     sem_post(sem_servidosLectores);
@@ -687,7 +687,7 @@ void sendToken(int id_nodoReq, int tipoReq, int numReq){
         sem_wait(sem_numNodLec);
         if((*numNodLec) == 0){
           sem_post(sem_numNodLec);
-          printf("Actualizando datos de peticiones y servidos al num peticion %d\n",numReq);
+          //printf("Actualizando datos de peticiones y servidos al num peticion %d\n",numReq);
 
 
           sem_wait(sem_servidosEscritores);
@@ -700,7 +700,7 @@ void sendToken(int id_nodoReq, int tipoReq, int numReq){
           sem_post(sem_numNodLec);
         
           testigo.mtype = id_nodoReq;
-          printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
+          printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d ! Buen viaje!\n",cola_token,id_nodoReq);
           msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
 
           sem_wait(sem_hasToken); //repasar este semáforo
@@ -722,7 +722,7 @@ void sendToken(int id_nodoReq, int tipoReq, int numReq){
           sem_post(sem_servidosLectores);
 
           testigo.mtype = id_nodoReq;
-          printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
+          printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d ! Buen viaje!\n",cola_token,id_nodoReq);
           msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
 
           sem_wait(sem_hasToken); //repasar este semáforo
@@ -739,8 +739,8 @@ void sendToken(int id_nodoReq, int tipoReq, int numReq){
       sem_wait(sem_lectorOEscritor);
       if(*lectorOEscritor==1){
         sem_post(sem_lectorOEscritor);
-        printf("Soy un nodo escritor y he recibido una peticion!\n");
-        printf("Actualizando peticiones servidas\n");
+        //printf("Soy un nodo escritor y he recibido una peticion!\n");
+        //printf("Actualizando peticiones servidas\n");
         sem_wait(sem_servidosLectores);
         memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
         sem_post(sem_servidosLectores);
@@ -762,7 +762,7 @@ void sendToken(int id_nodoReq, int tipoReq, int numReq){
           sem_post(sem_servidosEscritores);
       
           testigo.mtype = id_nodoReq;
-          printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
+          printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d! Buen viaje!\n",cola_token,id_nodoReq);
 
           msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
           sem_wait(sem_hasToken);
@@ -781,7 +781,7 @@ void sendToken(int id_nodoReq, int tipoReq, int numReq){
               testigo.servidosLectores[id_nodoReq-1] = servidosLectores[id_nodoReq-1];
               sem_post(sem_servidosLectores);
               testigo.mtype = id_nodoReq;
-              printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
+              printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d! Buen viaje!\n",cola_token,id_nodoReq);
 
               msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
               sem_wait(sem_hasToken);
