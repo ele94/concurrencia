@@ -397,7 +397,7 @@ int main (char argc, char *argv[]){
   esperandoAviso = returnPtr;
 
   //Colas del testigo y del aviso de peticion de testigo
-  id = 3;
+  id = 17;
   key = ftok(path,id);
   cola_token = msgget(key, shmflg);
   if(cola_token == 0){

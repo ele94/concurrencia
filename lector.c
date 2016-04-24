@@ -275,7 +275,7 @@ int main(char argc, char * argv[]){
   esperandoAviso = returnPtr;
 
 	
-	id = 3;
+	id = 17;
 	key = ftok(path,id);
 	int cola_token = msgget(key, 0666| IPC_CREAT);
 	printf("cola_token %d\n",cola_token);
@@ -437,6 +437,10 @@ if(id_nodo==5){
 			printf("Esperando por el testigo en la cola %d con mi id %d\n",cola_token,id_nodo);
 			msgrcv(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), (long)id_nodo, 0);
 			printf("Testigo recibido! Menos mal, tanto tiempo esperando...\n");
+			printf("Actualizando lectores y escritores servidos en el proceso...\n");
+		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
+		 	memcpy(servidosLectores, testigo.servidosLectores, sizeof(int[5]));
+		 	(*numNodLec) = testigo.numNodLec;
 
 		} else {
 			printf("Tienes el testigo! Que suerte!\n");
@@ -485,6 +489,10 @@ if(id_nodo==5){
 			printf("Espernado por el testigo en la cola %d con tipo %d\n",cola_token,id_nodo);
 			msgrcv(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), (long)id_nodo, 0);
 			printf("Testigo recibido! Ahora ya nadie podra interponerse en tu camino\n");
+			printf("Actualizando lectores y escritores servidos en el proceso...\n");
+		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
+		 	memcpy(servidosLectores, testigo.servidosLectores, sizeof(int[5]));
+		 	(*numNodLec) = testigo.numNodLec;
 
 		} else {
 			printf("Uf, sigues teniendo el testigo. Menos mal. Saliendo...\n");
@@ -508,7 +516,7 @@ if(id_nodo==5){
 
 		//sendToken()
 		//Hay que ver lo de reservar y compartir memoria para el array, igual da violación de segmento.
-		printf("Actualizando peticiones servidas\n");
+		printf("Actualizando peticiones servidas...\n");
 		sem_wait(sem_servidosLectores);
 		 memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
 		//testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
@@ -519,7 +527,7 @@ if(id_nodo==5){
 		//testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
 		sem_post(sem_servidosEscritores);
 		
-		printf("Actualizando numero de lectores\n");
+		printf("Actualizando numero de lectores en el token...\n");
 		sem_wait(sem_numNodLec);
 		testigo.numNodLec = (*numNodLec);
 		sem_post(sem_numNodLec);
