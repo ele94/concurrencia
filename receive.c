@@ -166,8 +166,8 @@ void thread_receive(void *ptr){
       if(peticion.myNum > peticionesEscritores[peticion.myID-1]){
         peticionesEscritores[peticion.myID-1]=peticion.myNum;
         printf("Actualizado el numero de peticion de escritores a %d \n", peticion.myNum);
-            printf("Escritores pedidos: %d %d %d %d %d\n",peticionesEscritores[0],peticionesEscritores[1],peticionesEscritores[2],peticionesEscritores[3],peticionesEscritores[4]);
-    printf("Escritores servidos: %d %d %d %d %d\n",servidosEscritores[0],servidosEscritores[1],servidosEscritores[2],servidosEscritores[3],servidosEscritores[4]);
+        printf("Escritores pedidos: %d %d %d %d %d\n",peticionesEscritores[0],peticionesEscritores[1],peticionesEscritores[2],peticionesEscritores[3],peticionesEscritores[4]);
+        printf("Escritores servidos: %d %d %d %d %d\n",servidosEscritores[0],servidosEscritores[1],servidosEscritores[2],servidosEscritores[3],servidosEscritores[4]);
       }
       sem_post(sem_peticionesEscritores);
 
@@ -202,6 +202,7 @@ void thread_receive(void *ptr){
             sem_wait(sem_esperandoAviso);
             if(*esperandoAviso == 1) {
             sem_post(sem_esperandoAviso);
+            printf("Mandando aviso para que el lector envie el token\n");
              msgsnd(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0);
             }
             else{
@@ -674,7 +675,7 @@ printf("Actualizando peticiones servidas\n");
 
           sem_wait(sem_servidosLectores);
           servidosLectores[id_nodoReq-1] = numReq;
-          testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+          testigo.servidosLectores[id_nodoReq-1] = servidosLectores[id_nodoReq-1];
           sem_post(sem_servidosLectores);
 
           testigo.mtype = id_nodoReq;

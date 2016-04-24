@@ -441,6 +441,8 @@ if(id_nodo==5){
 		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
 		 	memcpy(servidosLectores, testigo.servidosLectores, sizeof(int[5]));
 		 	(*numNodLec) = testigo.numNodLec;
+		 	printf("Actualizando servidosLectores ahora que hemos recibido el testigo...\n");
+		 	servidosLectores[id_nodo-1] = (*myNum);
 
 		} else {
 			printf("Tienes el testigo! Que suerte!\n");
@@ -493,6 +495,8 @@ if(id_nodo==5){
 		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
 		 	memcpy(servidosLectores, testigo.servidosLectores, sizeof(int[5]));
 		 	(*numNodLec) = testigo.numNodLec;
+		 	printf("Actualizando servidosLectores ahora que hemos recibido el testigo...\n");
+		 	servidosLectores[id_nodo-1] = (*myNum);
 
 		} else {
 			printf("Uf, sigues teniendo el testigo. Menos mal. Saliendo...\n");
