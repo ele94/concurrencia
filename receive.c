@@ -129,7 +129,7 @@ int fin = 0;
 
 
 
-void sendToken(int id_nodoReq, int tipoReq);
+void sendToken(int id_nodoReq, int tipoReq, int numReq);
 
 
 
@@ -177,7 +177,7 @@ void thread_receive(void *ptr){
          sem_post(sem_inSC);
          sem_post(sem_hasToken);
          printf("Entrando en el sendToken para ver si se puede mandar el testigo a %d\n",peticion.myID);
-         sendToken(peticion.myID,peticion.lectorOEscritor);
+         sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
       }
       else{
          sem_post(sem_inSC);
@@ -208,13 +208,13 @@ void thread_receive(void *ptr){
                sem_post(sem_esperandoAviso);
             }  
           printf("Mandando el testigo al ID %d\n",peticion.myID);
-	        sendToken(peticion.myID,peticion.lectorOEscritor);
+	        sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
 	     }
 	     else 
          sem_wait(sem_inSC);
          if(*inSC == 0) {
             sem_post(sem_inSC);
-            sendToken(peticion.myID,peticion.lectorOEscritor);
+            sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
          }
          else{
             sem_post(sem_inSC);
@@ -397,7 +397,7 @@ int main (char argc, char *argv[]){
   esperandoAviso = returnPtr;
 
   //Colas del testigo y del aviso de peticion de testigo
-  id = 1;
+  id = 3;
   key = ftok(path,id);
   cola_token = msgget(key, shmflg);
   if(cola_token == 0){
@@ -613,24 +613,27 @@ int main (char argc, char *argv[]){
 
 
 
-void sendToken(int id_nodoReq, int tipoReq){
+void sendToken(int id_nodoReq, int tipoReq, int numReq){
   printf("Hola! Soy el sendToken! Yo le atendere en el proceso de enviar el token a otro nodo\n");
 
 sem_wait(sem_lectorOEscritor);
 if(*lectorOEscritor==0){
     sem_post(sem_lectorOEscritor);
+ 
+printf("Actualizando peticiones servidas\n");
     sem_wait(sem_servidosLectores);
-    testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+     memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
+    //testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
     sem_post(sem_servidosLectores);
 
     sem_wait(sem_servidosEscritores);
-    testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
+     memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
+    //testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
     sem_post(sem_servidosEscritores);
-    
-    sem_wait(sem_numNodLec);
-    testigo.numNodLec = (*numNodLec);
-    sem_post(sem_numNodLec);
-    
+
+        sem_wait(sem_numNodLec);
+        testigo.numNodLec = (*numNodLec);
+        sem_post(sem_numNodLec);
     
       
       if(tipoReq==1){
@@ -638,6 +641,17 @@ if(*lectorOEscritor==0){
         sem_wait(sem_numNodLec);
         if((*numNodLec) == 0){
           sem_post(sem_numNodLec);
+          printf("Actualizando datos de peticiones y servidos al num peticion %d\n",numReq);
+
+
+         sem_wait(sem_servidosEscritores);
+          servidosEscritores[id_nodoReq-1] = numReq;
+         testigo.servidosEscritores[id_nodoReq-1] = servidosEscritores[id_nodoReq-1];
+        sem_post(sem_servidosEscritores);
+    
+        sem_wait(sem_numNodLec);
+        testigo.numNodLec = (*numNodLec);
+        sem_post(sem_numNodLec);
         
           testigo.mtype = id_nodoReq;
           printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
@@ -656,6 +670,10 @@ if(*lectorOEscritor==0){
         if (*hasToken != 0) {
          sem_post(sem_hasToken);
 
+          sem_wait(sem_servidosLectores);
+          servidosLectores[id_nodoReq-1] = numReq;
+          testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+          sem_post(sem_servidosLectores);
 
           testigo.mtype = id_nodoReq;
                     printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
@@ -674,14 +692,17 @@ if(*lectorOEscritor==0){
       sem_post(sem_lectorOEscritor);
       sem_wait(sem_lectorOEscritor);
       if(*lectorOEscritor==1){
-         sem_post(sem_lectorOEscritor);
-         sem_wait(sem_servidosLectores);
-         testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
-         sem_post(sem_servidosLectores);
+        sem_post(sem_lectorOEscritor);
+        printf("Actualizando peticiones servidas\n");
+    sem_wait(sem_servidosLectores);
+     memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
+    //testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+    sem_post(sem_servidosLectores);
 
-         sem_wait(sem_servidosEscritores);
-         testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
-         sem_post(sem_servidosEscritores);
+    sem_wait(sem_servidosEscritores);
+     memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
+    //testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
+    sem_post(sem_servidosEscritores);
 
          sem_wait(sem_numNodLec);
          testigo.numNodLec = (*numNodLec);
@@ -689,6 +710,11 @@ if(*lectorOEscritor==0){
 
 
          if(tipoReq==1){
+
+          sem_wait(sem_servidosEscritores);
+          servidosEscritores[id_nodoReq-1] = numReq;
+         testigo.servidosEscritores[id_nodoReq-1] = servidosEscritores[id_nodoReq-1];
+         sem_post(sem_servidosEscritores);
       
             testigo.mtype = id_nodoReq;
                       printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
@@ -704,6 +730,11 @@ if(*lectorOEscritor==0){
             sem_wait(sem_hasToken);
             if (*hasToken != 0) {
                sem_post(sem_hasToken);
+
+              sem_wait(sem_servidosLectores);
+              servidosLectores[id_nodoReq-1] = numReq;
+             testigo.servidosLectores[id_nodoReq-1] = servidosLectores[id_nodoReq-1];
+             sem_post(sem_servidosLectores);
                   testigo.mtype = id_nodoReq;
                             printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
 

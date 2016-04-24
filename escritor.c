@@ -267,7 +267,7 @@ int main(char argc, char * argv[]){
 
 
 	
-	id = 1;
+	id = 3;
 	key = ftok(path,id);
 	int cola_token = msgget(key, 0666| IPC_CREAT);
 	printf("cola_token %d\n",cola_token);
@@ -440,13 +440,15 @@ if(id_nodo==5){
 
 		//sendToken()
 		//Hay que ver lo de reservar y compartir memoria para el array, igual da violación de segmento.
-
+		printf("Actualizando peticiones servidas\n");
 		sem_wait(sem_servidosLectores);
-		testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+		 memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
+		//testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
 		sem_post(sem_servidosLectores);
 
 		sem_wait(sem_servidosEscritores);
-		testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
+		 memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
+		//testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
 		sem_post(sem_servidosEscritores);
 
 		sem_wait(sem_numNodLec);
@@ -456,11 +458,16 @@ if(id_nodo==5){
 		printf("Entrando en el sendToken. Comprobando si hay peticiones que atender...\n");
 		for(id_nodo_sig=0; id_nodo_sig < 5; id_nodo_sig++){
 			if( (id_nodo_sig + 1) == id_nodo ) continue;
+			printf("El id del nodo a analizar ahora es %d\n",id_nodo_sig);
 
 			sem_wait(sem_peticionesEscritores);
 			if(peticionesEscritores[id_nodo_sig] > servidosEscritores[id_nodo_sig]){
 				sem_post(sem_peticionesEscritores);
 				testigo.mtype = id_nodo_sig + 1;
+				sem_wait(sem_servidosEscritores);
+				servidosEscritores[id_nodo_sig] = peticionesEscritores[id_nodo_sig];
+				testigo.servidosEscritores[id_nodo_sig] = servidosEscritores[id_nodo_sig];
+				sem_post(sem_servidosEscritores);
 				printf("Peticion encontrada! Mandando el testigo al proceso %d en la cola %d\n",id_nodo_sig+1,cola_token);
 				msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
 				printf("Adios, testigo, volveremos a vernos!\n");
@@ -482,6 +489,10 @@ if(id_nodo==5){
 				if(peticionesLectores[id_nodo_sig] > servidosLectores[id_nodo_sig]){
 					sem_post(sem_peticionesLectores);
 					testigo.mtype = id_nodo_sig + 1;
+					sem_wait(sem_servidosLectores);
+					servidosLectores[id_nodo_sig] = peticionesLectores[id_nodo_sig];
+					testigo.servidosLectores[id_nodo_sig] = servidosLectores[id_nodo_sig];
+					sem_post(sem_servidosLectores);
 					printf("Peticion encontrada! Mandando el testigo al proceso %d en la cola %d\n",id_nodo_sig+1,cola_token);
 					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
 					printf("Adios, testigo, volveremos a vernos!\n");

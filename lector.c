@@ -275,7 +275,7 @@ int main(char argc, char * argv[]){
   esperandoAviso = returnPtr;
 
 	
-	id = 1;
+	id = 3;
 	key = ftok(path,id);
 	int cola_token = msgget(key, 0666| IPC_CREAT);
 	printf("cola_token %d\n",cola_token);
@@ -510,11 +510,13 @@ if(id_nodo==5){
 		//Hay que ver lo de reservar y compartir memoria para el array, igual da violación de segmento.
 		printf("Actualizando peticiones servidas\n");
 		sem_wait(sem_servidosLectores);
-		testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+		 memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
+		//testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
 		sem_post(sem_servidosLectores);
 
 		sem_wait(sem_servidosEscritores);
-		testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
+		 memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
+		//testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
 		sem_post(sem_servidosEscritores);
 		
 		printf("Actualizando numero de lectores\n");
@@ -537,6 +539,10 @@ if(id_nodo==5){
 					sem_post(sem_numNodLec);
 				
 					testigo.mtype = id_nodo_sig + 1;
+					sem_wait(sem_servidosEscritores);
+					servidosEscritores[id_nodo_sig] = peticionesEscritores[id_nodo_sig];
+					testigo.servidosEscritores[id_nodo_sig] = servidosEscritores[id_nodo_sig];
+					sem_post(sem_servidosEscritores);
 					printf("Mandando el testigo al proceso %d en la c ola %d...\n",id_nodo_sig+1,cola_token);
 					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
 
@@ -581,6 +587,10 @@ if(id_nodo==5){
 					sem_post(sem_servidosLectores);
 
 					testigo.mtype = id_nodo_sig + 1;
+					sem_wait(sem_servidosLectores);
+					servidosLectores[id_nodo_sig] = peticionesLectores[id_nodo_sig];
+					testigo.servidosLectores[id_nodo_sig] = servidosLectores[id_nodo_sig];
+					sem_post(sem_servidosLectores);
 					printf("Mandando el testigo...\n");
 					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
 
