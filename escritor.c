@@ -382,6 +382,8 @@ if(id_nodo==5){
 		printf("Pulse la tecla ENTER para intentar entrar a la sección crítica.\n");
 		int entrar = getchar();
 
+		/********************************* INICIO DEL PREPROTOCOLO ****************************************************/
+
 		sem_wait(sem_hasToken);
 		if(!(*hasToken)){
 			sem_post(sem_hasToken);
@@ -428,8 +430,12 @@ if(id_nodo==5){
 		*inSC = 1;
 		sem_post(sem_inSC);
 
+		/********************************************** FIN DEL PREPROTOCOLO *****************************************************/
+
 		printf("Escritor escribiendo.... Pulse la tecla ENTER para salir de la sección crítica.\n");
 		int salir = getchar();
+
+		/*********************************************** INICIO DEL POSTPROTOCOLO *************************************************/
 
 		printf("Actualizando variables de servidos...\n");
 		sem_wait(sem_servidosEscritores);
@@ -513,5 +519,7 @@ if(id_nodo==5){
 		else{
 			sem_post(sem_hasToken);
 		}
+
+		/**************************************** FIN DEL POSTPROTOCOLO **********************************************/
 	}
 }

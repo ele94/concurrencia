@@ -427,6 +427,8 @@ if(id_nodo==5){
 		printf("Pulse la tecla ENTER para intentar entrar a la sección crítica.\n");
 		int entrar = getchar();
 
+		/************************************* INICIO DEL PREPROTOCOLO ********************************************/
+
 		sem_wait(sem_hasToken);
 		if(!(*hasToken)){
 			printf("Oooh espera, no tienes el testigo. Pidiendo el testigo...\n");
@@ -533,10 +535,13 @@ if(id_nodo==5){
 
 		//FIN SENDTOKEN
 		
+		/*******************************************  FIN DEL PREPROTOCOLO ****************************************************/
 
 
 		printf("Lector leyendo.... Pulse la tecla ENTER para salir de la sección crítica.\n");
 		int salir = getchar();
+
+		/******************************************* INICIO DEL POSTPROTOCOLO ***************************************************/
 
 		sem_wait(sem_servidosLectores);
 		servidosLectores[id_nodo-1] = (*myNum);
@@ -706,6 +711,8 @@ if(id_nodo==5){
 		} else {
 			sem_post(sem_hasToken);
 		}
+
+		/********************************************FIN DEL POSTPROTOCOLO ************************************************************/
 
 	}
 }
