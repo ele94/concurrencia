@@ -52,7 +52,7 @@ int main (int argc,int *argv[]){
    int id_nodo;
   for(i=0;i<INTRANODOS;i++){
    id_nodo = i+1;
-  	id = 15+i;
+  	id = 16+i;
     key = ftok(path,id);
     printf("key %d\n",key);
   	id_cola = msgget (key, 0666| IPC_CREAT);
@@ -69,7 +69,7 @@ int main (int argc,int *argv[]){
 
 //	CLAVE 30[12345] PARA numLec
 
-	id=25+i;
+	id=26+i;
   key0=ftok(path,id);
   printf("key0 %d\n",key0);
 	shmid0=shmget(key0,sizeof(int),0666| IPC_CREAT);
@@ -92,7 +92,7 @@ int main (int argc,int *argv[]){
 
 //	CLAVE 40[12345] PARA escritoresEnCola 
 
-	id=35 + i;
+	id=36 + i;
   key1=ftok(path,id);
   printf("key1 %d\n",key1);
 	shmid1=shmget(key1,sizeof(int),0666| IPC_CREAT);
@@ -116,7 +116,7 @@ int main (int argc,int *argv[]){
 	shm1[0] = 0;
 
 //	SEMAFORO MUTEX NUMLEC
-        id=45 + i;
+        id=46 + i;
         key2=ftok(path,id);
         printf("key2 %d\n",key2);
         shmid2=shmget(key2,sizeof(sem_t),0666| IPC_CREAT);
@@ -143,7 +143,7 @@ int main (int argc,int *argv[]){
 
 //	SEMAFORO MUTEX ESCRITORESENCOLA
   
-        id= 55 + i;
+        id= 56 + i;
         key3=ftok(path,id);
         printf("key3 %d\n",key3);
         shmid3=shmget(key3,sizeof(sem_t), 0666| IPC_CREAT);

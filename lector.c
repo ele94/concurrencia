@@ -260,7 +260,6 @@ int main(char argc, char * argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  printf("El shmid es %d\n",shmid);
   inSC = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si el representante es un lector o un escritor

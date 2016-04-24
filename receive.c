@@ -420,7 +420,7 @@ int main (char argc, char *argv[]){
   esperandoAviso = (int*) shmat(shmid, NULL, 0);
 
   //Colas del testigo y del aviso de peticion de testigo
-  id = 17;
+  id = 120;
   key = ftok(path,id);
   cola_token = msgget(key, shmflg);
   if(cola_token == 0){
@@ -428,10 +428,7 @@ int main (char argc, char *argv[]){
     return 0;
   }
 
-  id = 150 * id_nodo;
-  key = ftok(path,id);
-  cola_warning = msgget(key, shmflg);
-  printf("Cola warning: %d\n",cola_warning);
+  
 
  
   //Creacion de las keys
