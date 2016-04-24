@@ -176,7 +176,7 @@ void thread_receive(void *ptr){
       if((*hasToken == 1)&&(*inSC == 0)) { 
          sem_post(sem_inSC);
          sem_post(sem_hasToken);
-         printf("Entrando en el sendToken para ver si se puede mandar el testigo a %d\n",peticion.myID);
+         printf("Entrando en el sendToken 1 para ver si se puede mandar el testigo a %d\n",peticion.myID);
          sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
       }
       else{
@@ -205,20 +205,22 @@ void thread_receive(void *ptr){
              msgsnd(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0);
             }
             else{
-               sem_post(sem_esperandoAviso);
+              sem_post(sem_esperandoAviso);
+              printf("Entrando en el sendToken 2 para ver si se puede mandar el testigo a %d\n",peticion.myID);
+              sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
             }  
-          printf("Mandando el testigo al ID %d\n",peticion.myID);
-	        sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
 	     }
-	     else 
+	     else{ 
          sem_wait(sem_inSC);
          if(*inSC == 0) {
             sem_post(sem_inSC);
+            printf("Entrando en el sendToken 3 para ve rsi se puede mandar el testigo a %d\n",peticion.myID);
             sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
          }
          else{
             sem_post(sem_inSC);
          }
+       }
       }
       else{
          sem_post(sem_hasToken);
@@ -619,7 +621,7 @@ void sendToken(int id_nodoReq, int tipoReq, int numReq){
 sem_wait(sem_lectorOEscritor);
 if(*lectorOEscritor==0){
     sem_post(sem_lectorOEscritor);
- 
+ printf("Soy un nodo lector y he recibido una peticion\n");
 printf("Actualizando peticiones servidas\n");
     sem_wait(sem_servidosLectores);
      memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
@@ -693,6 +695,7 @@ printf("Actualizando peticiones servidas\n");
       sem_wait(sem_lectorOEscritor);
       if(*lectorOEscritor==1){
         sem_post(sem_lectorOEscritor);
+        printf("Soy un nodo escritor y he recibido una peticion!\n");
         printf("Actualizando peticiones servidas\n");
     sem_wait(sem_servidosLectores);
      memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
