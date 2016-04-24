@@ -674,20 +674,11 @@ if(id_nodo==5){
 					printf("No se para por culpa del semaforo palabrita del nino jesus\n");
 
 					msgrcv(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0, 0);
-					printf("Aviso recibido! Liberando testigo...\n");
+					printf("Aviso recibido! Continuando ejecucion...\n");
 
 					sem_wait(sem_esperandoAviso);
 					*esperandoAviso = 0;
 					sem_post(sem_esperandoAviso);
-
-					printf("Mandando el testigo al proceso %d en la cola %d...\n",id_nodo_sig+1,cola_token);
-					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
-
-					sem_wait(sem_hasToken); //repasar este semáforo
-					*hasToken = 0;
-					sem_post(sem_hasToken); //repasar este semáforo
-				}
-
 
 		} else {
 			sem_post(sem_hasToken);

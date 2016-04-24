@@ -205,10 +205,13 @@ void thread_receive(void *ptr){
             sem_wait(sem_esperandoAviso);
             if(*esperandoAviso == 1) {
             sem_post(sem_esperandoAviso);
-            printf("Mandando aviso para que el lector envie el token\n");
+            printf("Mandando aviso de que el lector se puede desbloquear\n");
             aviso.mtype = id_nodo;
             aviso.num = 0;
-             msgsnd(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0);
+            msgsnd(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0);
+            printf("Entrando en el sendtoken 4\n");
+            sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
+
             }
             else{
               printf("No hay avisos esperando a ser atendidos\n");
