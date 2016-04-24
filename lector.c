@@ -622,7 +622,7 @@ if(id_nodo==5){
 					sem_wait(sem_hasToken); //repasar este semáforo
 					*hasToken = 0;
 					sem_post(sem_hasToken); //repasar este semáforo
-				} else {}
+				} else {
 					printf("No se puede mandar el testigo porque l numero de lectores leyendo es %d\n",*numNodLec);
 					sem_post(sem_numNodLec);
 
@@ -665,7 +665,7 @@ if(id_nodo==5){
 					sem_post(sem_servidosLectores);
 				}
 			}
-			if(hasPet == 0){
+			if(hayPet == 0){
 			//bloquearse esperando hasta petición
 					sem_wait(sem_esperandoAviso);
 					printf("Esperando aviso...\n");
@@ -679,6 +679,7 @@ if(id_nodo==5){
 					sem_wait(sem_esperandoAviso);
 					*esperandoAviso = 0;
 					sem_post(sem_esperandoAviso);
+				}
 
 		} else {
 			sem_post(sem_hasToken);
