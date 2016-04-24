@@ -440,10 +440,11 @@ if(id_nodo==5){
 			sem_post(sem_lectorOEscritor);
 			peticion.myID = id_nodo;
 			peticion.myNum = (*myNum);
+			sem_wait(sem_peticionesLectores);
 			peticion.lectorOEscritor = (*lectorOEscritor);
+			sem_post(sem_peticionesLectores);
 			for(id_nodo_sig=0; id_nodo_sig<4; id_nodo_sig++){
 
-				//VA AQUIIIII
 				peticion.mtype = id_nodos[id_nodo_sig];
 				printf("Mandando peticion a la cola con el msqid %d\n",msqid_colas[id_nodo_sig]);
 				msgsnd(msqid_colas[id_nodo_sig], (struct msgbuf *) &peticion, sizeof(peticion), 0);
@@ -454,11 +455,22 @@ if(id_nodo==5){
 			msgrcv(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), (long)id_nodo, 0);
 			printf("Testigo recibido! Menos mal, tanto tiempo esperando...\n");
 			printf("Actualizando lectores y escritores servidos en el proceso...\n");
+
+			sem_wait(sem_servidosEscritores);
 		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
+		 	sem_post(sem_servidosEscritores);
+
+		 	sem_wait(sem_servidosLectores);
 		 	memcpy(servidosLectores, testigo.servidosLectores, sizeof(int[5]));
+		 	sem_post(sem_servidosLectores);
+
 		 	(*numNodLec) = testigo.numNodLec;
 		 	printf("Actualizando servidosLectores ahora que hemos recibido el testigo...\n");
+
+		 	sem_wait(sem_servidosLectores);
 		 	servidosLectores[id_nodo-1] = (*myNum);
+		 	sem_post(sem_servidosLectores);
+
 		 	*numNodLec = testigo.numNodLec;
 		 	printf("Numero de lectores leyendo: %d\n",*numNodLec);
 
@@ -481,16 +493,13 @@ if(id_nodo==5){
 		
 		//SENDTOKEN
 				//sendToken()
-		//Hay que ver lo de reservar y compartir memoria para el array, igual da violación de segmento.
 		printf("Comprobando si hay peticiones de lectores pendientes...\n");
 		sem_wait(sem_servidosLectores);
 		 memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
-		//testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
 		sem_post(sem_servidosLectores);
 
 		sem_wait(sem_servidosEscritores);
 		 memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
-		//testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
 		sem_post(sem_servidosEscritores);
 		
 		printf("Actualizando numero de lectores en el token...\n");
@@ -561,7 +570,10 @@ if(id_nodo==5){
 
 			peticion.myID = id_nodo;
 			peticion.myNum = (*myNum);
+
+			sem_wait(sem_lectorOEscritor);
 			peticion.lectorOEscritor = (*lectorOEscritor);
+			sem_post(sem_lectorOEscritor);
 			
 			for(id_nodo_sig=0; id_nodo_sig<4; id_nodo_sig++){
 			printf("Pidiendo el testigo en la cola %d con mi id %d\n",msqid_colas[id_nodo_sig],id_nodo);
@@ -573,11 +585,23 @@ if(id_nodo==5){
 			msgrcv(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), (long)id_nodo, 0);
 			printf("Testigo recibido! Ahora ya nadie podra interponerse en tu camino\n");
 			printf("Actualizando lectores y escritores servidos en el proceso...\n");
+
+			sem_wait(sem_servidosEscritores);
 		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
+		 	sem_post(sem_servidosEscritores);
+
+		 	sem_wait(sem_servidosLectores);
 		 	memcpy(servidosLectores, testigo.servidosLectores, sizeof(int[5]));
+		 	sem_post(sem_servidosLectores);
+
+		 	sem_wait(sem_numNodLec);
 		 	(*numNodLec) = testigo.numNodLec;
+		 	sem_post(sem_numNodLec);
+
 		 	printf("Actualizando servidosLectores ahora que hemos recibido el testigo...\n");
+		 	sem_wait(sem_servidosLectores);
 		 	servidosLectores[id_nodo-1] = (*myNum);
+		 	sem_post(sem_servidosLectores);
 
 		} else {
 			printf("Uf, sigues teniendo el testigo. Menos mal. Saliendo...\n");
@@ -589,28 +613,23 @@ if(id_nodo==5){
 		sem_wait(sem_hasToken);
 		*hasToken = 1;
 		sem_post(sem_hasToken);
-
-		
+	
 		sem_wait(sem_numNodLec);
 		(*numNodLec)--;
 		sem_post(sem_numNodLec);
 		 
-
 		sem_wait(sem_inSC);
 		*inSC = 0;
 		sem_post(sem_inSC);
 
 		//sendToken()
-		//Hay que ver lo de reservar y compartir memoria para el array, igual da violación de segmento.
 		printf("Actualizando peticiones servidas...\n");
 		sem_wait(sem_servidosLectores);
-		 memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
-		//testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+		memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
 		sem_post(sem_servidosLectores);
 
 		sem_wait(sem_servidosEscritores);
-		 memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
-		//testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
+		memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
 		sem_post(sem_servidosEscritores);
 		
 		printf("Actualizando numero de lectores en el token...\n");
@@ -690,7 +709,9 @@ if(id_nodo==5){
 				}
 			}
 			if(hayPet == 0){
+				sem_wait(sem_numNodLec);
 				if(*numNodLec!=0){
+					sem_post(sem_numNodLec);
 			//bloquearse esperando hasta petición
 					sem_wait(sem_esperandoAviso);
 					printf("Esperando aviso...\n");
@@ -705,6 +726,9 @@ if(id_nodo==5){
 					sem_wait(sem_esperandoAviso);
 					*esperandoAviso = 0;
 					sem_post(sem_esperandoAviso);
+				}
+				else{
+					sem_post(sem_numNodLec);
 				}
 				}
 

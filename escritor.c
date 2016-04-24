@@ -395,7 +395,10 @@ if(id_nodo==5){
 
 			peticion.myID = id_nodo;
 			peticion.myNum = (*myNum);
+
+			sem_wait(sem_lectorOEscritor);
 			peticion.lectorOEscritor = (*lectorOEscritor);
+			sem_post(sem_lectorOEscritor);
 
 			for(id_nodo_sig=0; id_nodo_sig<4; id_nodo_sig++){
 				peticion.mtype = id_nodos[id_nodo_sig];
@@ -407,9 +410,18 @@ if(id_nodo==5){
 			msgrcv(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), (long)id_nodo, 0);
 			printf("Testigo recibido! Menos mal, ya estaba empezando a cansarme...\n");
 			printf("Actualizando lectores y escritores servidos en el proceso...\n");
+
+			sem_wait(sem_servidosEscritores);
 		 	memcpy(servidosEscritores, testigo.servidosEscritores, sizeof(int[5]));
+		 	sem_post(sem_servidosEscritores);
+
+		 	sem_wait(sem_servidosLectores);
 		 	memcpy(servidosLectores, testigo.servidosLectores, sizeof(int[5]));
+		 	sem_post(sem_servidosLectores);
+
+		 	sem_wait(sem_numNodLec);
 		 	(*numNodLec) = testigo.numNodLec;
+		 	sem_post(sem_numNodLec);
 
 
 		}
@@ -438,10 +450,9 @@ if(id_nodo==5){
 		/*********************************************** INICIO DEL POSTPROTOCOLO *************************************************/
 
 		printf("Actualizando variables de servidos...\n");
+
 		sem_wait(sem_servidosEscritores);
 		servidosEscritores[id_nodo-1] = (*myNum);
-		printf("Escritores pedidos: %d %d %d %d %d\n",peticionesEscritores[0],peticionesEscritores[1],peticionesEscritores[2],peticionesEscritores[3],peticionesEscritores[4]);
-		printf("Escritores servidos: %d %d %d %d %d\n",servidosEscritores[0],servidosEscritores[1],servidosEscritores[2],servidosEscritores[3],servidosEscritores[4]);
 		sem_post(sem_servidosEscritores);
 
 		sem_wait(sem_inSC);
@@ -449,16 +460,13 @@ if(id_nodo==5){
 		sem_post(sem_inSC);
 
 		//sendToken()
-		//Hay que ver lo de reservar y compartir memoria para el array, igual da violación de segmento.
 		printf("Actualizando peticiones servidas en el token...\n");
 		sem_wait(sem_servidosLectores);
-		 memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
-		//testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+		memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
 		sem_post(sem_servidosLectores);
 
 		sem_wait(sem_servidosEscritores);
-		 memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
-		//testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
+		memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
 		sem_post(sem_servidosEscritores);
 
 		sem_wait(sem_numNodLec);

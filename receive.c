@@ -171,8 +171,10 @@ void thread_receive(void *ptr){
     printf("Peticion del nodo %d de tipo %d\n",data->numNodo,peticion.lectorOEscritor);
     
     sem_wait(sem_receive);
-    //si recibimos una peticion de un escritor
+
+    sem_wait(sem_lectorOEscritor);
     if(peticion.lectorOEscritor == 1){
+      sem_post(sem_lectorOEscritor);
       sem_wait(sem_peticionesEscritores);
       if(peticion.myNum > peticionesEscritores[peticion.myID-1]){
         peticionesEscritores[peticion.myID-1]=peticion.myNum;
@@ -198,7 +200,9 @@ void thread_receive(void *ptr){
     }
     
     //si recibimos una peticion de un lector
-    else if(peticion.lectorOEscritor == 0){
+    else {
+      sem_post(sem_lectorOEscritor);
+      if(peticion.lectorOEscritor == 0){
       sem_wait(sem_peticionesLectores);
       if(peticion.myNum > peticionesLectores[peticion.myID-1]){
         peticionesLectores[peticion.myID-1]=peticion.myNum;
@@ -246,12 +250,12 @@ void thread_receive(void *ptr){
          sem_post(sem_hasToken);
       }
     }
-    
+  }
    sem_post(sem_receive);
   }
+
   
 }
-
 
 
 
@@ -429,11 +433,7 @@ int main (char argc, char *argv[]){
   cola_warning = msgget(key, shmflg);
   printf("Cola warning: %d\n",cola_warning);
 
-  
-  //Sección internodo
-  // ??? key_t peticion_key;
-
-
+ 
   //Creacion de las keys
   int f;
   for(f=0;f<4;f++){
@@ -445,7 +445,6 @@ int main (char argc, char *argv[]){
 
 
   if(id_nodo==1){
-  //SEMAFOROS (los he movido todos aqui para que sean faciles de mover)
   //Semáforo peticionesLectores
   sem_peticionesLectores = sem_open(SEM_PETLEC1, O_CREAT, 0644, 1);
   //Semáforo peticionesEscritores
@@ -575,33 +574,56 @@ int main (char argc, char *argv[]){
   //aqui habria que mete rsemaforos...
   printf("A punto de inicializar token\n");
   if(id_nodo == 1){
+    sem_wait(sem_hasToken);
     *hasToken = 1;
+    sem_post(sem_hasToken);
     printf("Felicidades! Tienes el token %d \n",*hasToken);
   }
   else {
+    sem_wait(sem_hasToken);
     *hasToken = 0;
+    sem_post(sem_hasToken);
     printf("Ooooh lo siento, no te ha tocado el token\n");
   }
 
 
-
+  sem_wait(sem_lectorOEscritor);
   *lectorOEscritor = 0;  //0 lector, 1 escritor
+  sem_post(sem_lectorOEscritor);
+
+  sem_wait(sem_esperandoAviso);
   *esperandoAviso = 0;
+  sem_post(sem_esperandoAviso);
+
+  sem_wait(sem_inSC);
   *inSC = 0;
+  sem_post(sem_inSC);
+
+  sem_wait(sem_numNodLec);
   *numNodLec = 0;
+  sem_post(sem_numNodLec);
+
   *myNum = 0;
   int petLec[] = {0,0,0,0,0};
   int petEsc[] = {0,0,0,0,0};
   int servLec[] = {0,0,0,0,0};
   int servEsc[] = {0,0,0,0,0};
-  //peticionesLectores = malloc( sizeof(int[5]) );
-  //peticionesEscritores = malloc( sizeof(int[5]) );
-  //servidosLectores = malloc( sizeof(int[5]) );
-  //servidosEscritores = malloc( sizeof(int[5]) );
+
+  sem_wait(sem_peticionesLectores);
   memcpy(petLec, peticionesLectores, sizeof(int[5]));
+  sem_post(sem_peticionesLectores);
+
+  sem_wait(sem_peticionesEscritores);
   memcpy(petEsc, peticionesEscritores, sizeof(int[5]));
+  sem_post(sem_peticionesEscritores);
+
+  sem_wait(sem_servidosLectores);
   memcpy(servLec, servidosLectores, sizeof(int[5]));
+  sem_post(sem_servidosLectores);
+
+  sem_wait(sem_servidosEscritores);
   memcpy(servEsc, servidosEscritores, sizeof(int[5]));
+  sem_post(sem_servidosEscritores);
 
 
 
@@ -645,24 +667,22 @@ int main (char argc, char *argv[]){
 void sendToken(int id_nodoReq, int tipoReq, int numReq){
   printf("Hola! Soy el sendToken! Yo le atendere en el proceso de enviar el token a otro nodo\n");
 
-sem_wait(sem_lectorOEscritor);
-if(*lectorOEscritor==0){
+  sem_wait(sem_lectorOEscritor);
+  if(*lectorOEscritor==0){
     sem_post(sem_lectorOEscritor);
- printf("Soy un nodo lector y he recibido una peticion\n");
-printf("Actualizando peticiones servidas\n");
+    printf("Soy un nodo lector y he recibido una peticion\n");
+    printf("Actualizando peticiones servidas\n");
     sem_wait(sem_servidosLectores);
-     memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
-    //testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+    memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
     sem_post(sem_servidosLectores);
 
     sem_wait(sem_servidosEscritores);
-     memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
-    //testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
+    memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
     sem_post(sem_servidosEscritores);
 
-        sem_wait(sem_numNodLec);
-        testigo.numNodLec = (*numNodLec);
-        sem_post(sem_numNodLec);
+    sem_wait(sem_numNodLec);
+    testigo.numNodLec = (*numNodLec);
+    sem_post(sem_numNodLec);
     
       
       if(tipoReq==1){
@@ -673,14 +693,14 @@ printf("Actualizando peticiones servidas\n");
           printf("Actualizando datos de peticiones y servidos al num peticion %d\n",numReq);
 
 
-         sem_wait(sem_servidosEscritores);
+          sem_wait(sem_servidosEscritores);
           servidosEscritores[id_nodoReq-1] = numReq;
-         testigo.servidosEscritores[id_nodoReq-1] = servidosEscritores[id_nodoReq-1];
-        sem_post(sem_servidosEscritores);
+          testigo.servidosEscritores[id_nodoReq-1] = servidosEscritores[id_nodoReq-1];
+          sem_post(sem_servidosEscritores);
     
-        sem_wait(sem_numNodLec);
-        testigo.numNodLec = (*numNodLec);
-        sem_post(sem_numNodLec);
+          sem_wait(sem_numNodLec);
+          testigo.numNodLec = (*numNodLec);
+          sem_post(sem_numNodLec);
         
           testigo.mtype = id_nodoReq;
           printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
@@ -705,7 +725,7 @@ printf("Actualizando peticiones servidas\n");
           sem_post(sem_servidosLectores);
 
           testigo.mtype = id_nodoReq;
-                    printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
+          printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
           msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
 
           sem_wait(sem_hasToken); //repasar este semáforo
@@ -724,54 +744,52 @@ printf("Actualizando peticiones servidas\n");
         sem_post(sem_lectorOEscritor);
         printf("Soy un nodo escritor y he recibido una peticion!\n");
         printf("Actualizando peticiones servidas\n");
-    sem_wait(sem_servidosLectores);
-     memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
-    //testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
-    sem_post(sem_servidosLectores);
+        sem_wait(sem_servidosLectores);
+        memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
+        sem_post(sem_servidosLectores);
 
-    sem_wait(sem_servidosEscritores);
-     memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
-    //testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
-    sem_post(sem_servidosEscritores);
+        sem_wait(sem_servidosEscritores);
+        memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
+        sem_post(sem_servidosEscritores);
 
-         sem_wait(sem_numNodLec);
-         testigo.numNodLec = (*numNodLec);
-         sem_post(sem_numNodLec);
+        sem_wait(sem_numNodLec);
+        testigo.numNodLec = (*numNodLec);
+        sem_post(sem_numNodLec);
 
 
          if(tipoReq==1){
 
           sem_wait(sem_servidosEscritores);
           servidosEscritores[id_nodoReq-1] = numReq;
-         testigo.servidosEscritores[id_nodoReq-1] = servidosEscritores[id_nodoReq-1];
-         sem_post(sem_servidosEscritores);
+          testigo.servidosEscritores[id_nodoReq-1] = servidosEscritores[id_nodoReq-1];
+          sem_post(sem_servidosEscritores);
       
-            testigo.mtype = id_nodoReq;
-                      printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
+          testigo.mtype = id_nodoReq;
+          printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
 
-            msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
-            sem_wait(sem_hasToken);
-            *hasToken = 0;
-            sem_post(sem_hasToken);
+          msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
+          sem_wait(sem_hasToken);
+          *hasToken = 0;
+          sem_post(sem_hasToken);
          }
 
          if(tipoReq==0){
       
             sem_wait(sem_hasToken);
             if (*hasToken != 0) {
-               sem_post(sem_hasToken);
+              sem_post(sem_hasToken);
 
               sem_wait(sem_servidosLectores);
               servidosLectores[id_nodoReq-1] = numReq;
-             testigo.servidosLectores[id_nodoReq-1] = servidosLectores[id_nodoReq-1];
-             sem_post(sem_servidosLectores);
-                  testigo.mtype = id_nodoReq;
-                            printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
+              testigo.servidosLectores[id_nodoReq-1] = servidosLectores[id_nodoReq-1];
+              sem_post(sem_servidosLectores);
+              testigo.mtype = id_nodoReq;
+              printf("Proceso sendtoken mandando el testigo en la cola %d al ID %d\n ! Buen viaje!",cola_token,id_nodoReq);
 
-                  msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
-                  sem_wait(sem_hasToken);
-                  *hasToken = 0;
-                  sem_post(sem_hasToken);
+              msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
+              sem_wait(sem_hasToken);
+              *hasToken = 0;
+              sem_post(sem_hasToken);
             }
             else{
                sem_post(sem_hasToken);
