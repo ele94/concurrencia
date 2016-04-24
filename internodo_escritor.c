@@ -66,14 +66,6 @@
 #define SEM_AVISO5 "/esperandoAvisoCin"
 #define SEM_RECEIVE5 "/receiveCin"
 
-//INTRANODO
-#define MSG_EXCEPT 020000
-
-struct permisoSC{
-  long tipo;
-};
-//INTRANODO
-
 //semaforos
 sem_t * sem_peticionesLectores;
 sem_t * sem_peticionesEscritores;
@@ -270,7 +262,7 @@ int main(char argc, char * argv[]){
 
 
 	
-	id = 120;
+	id = 17;
 	key = ftok(path,id);
 	int cola_token = msgget(key, 0666| IPC_CREAT);
 	printf("cola_token %d\n",cola_token);
@@ -385,79 +377,10 @@ if(id_nodo==5){
 }
 
 
-//INIT INTRANODO
-	int id_cola_aux[1];
-	int *id_cola, *escritoresEnCola;
-	int idqueue;
-	sem_t *sem;
-    struct permisoSC permisoSC;
-	
-
-	id_cola=id_cola_aux;
-
-        key = ftok(path,15+id_nodo);
-	id_cola[0] = msgget (key, 0600 | IPC_CREAT);
-	idqueue=id_cola[0];
-
-//	CLAVE 301 PARA escritoresEnCola
-        key = ftok(path,35+id_nodo);
-
-        shmid=shmget(key,sizeof(int),IPC_CREAT | 0666);
-  	if(shmid<0){
-  	      perror("shmget");
- 	       exit(1);
-  	}
-
-  	escritoresEnCola=(int *)shmat(shmid, NULL, 0);
-  	if(*escritoresEnCola == -1) {
-  	      perror("shmat");
-  	      exit(1);
-  	}
-
-//SEMAFORO PARA ESCRITORES EN COLA
-        key = ftok(path,55+id_nodo);
-
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
-
-        if(shmid<0){
-                perror("shmget");
-        exit(1);
-        }
-
-        sem=(sem_t *)shmat(shmid, NULL, 0);
-        if(sem == (sem_t *)-1) {
-                perror("shmat");
-                exit(1);
-        }
-
 	while(1){
-
-		/************************************ INICIO DEL PREPROTOCOLO DE INTRANODO ******************************/
-
-	printf("Escritor en el nodo %i sin hacer nada\n",id_nodo);
-	getchar();
-	printf("Escritor en la cola del nodo %i\n", id_nodo);
-
-	sem_wait(sem);
-	escritoresEnCola[0]++;
-	sem_post(sem);
-
-	printf("Hay %i escritores en la cola\n" ,escritoresEnCola[0]);
-	msgrcv(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),(long)2,0 | MSG_EXCEPT);
-
-	sem_wait(sem);
-	escritoresEnCola[0]--;
-	sem_post(sem);
-
-	printf("Hay %i escritores en la cola\n", escritoresEnCola[0]);
-	printf("Algoritmo internodo\n");
-
-
-		/************************************* FIN DEL PREPROTOCOLO DE INTRANODO ******************************/
-
+	
 		printf("Pulse la tecla ENTER para intentar entrar a la sección crítica.\n");
 		int entrar = getchar();
-
 
 		/********************************* INICIO DEL PREPROTOCOLO ****************************************************/
 
@@ -606,21 +529,5 @@ if(id_nodo==5){
 		}
 
 		/**************************************** FIN DEL POSTPROTOCOLO **********************************************/
-
-		printf("pulsa ENTER para dar paso a otros procesos de tu nodo %i\n", id_nodo);
-	getchar();
-	sem_wait(sem);
-	if(escritoresEnCola[0]){
-		printf("Hay escritores en cola\n");
-		permisoSC.tipo=3;
-		msgsnd(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),0);  		
-	}
-	else{
-		printf("No hay escritores en cola\n");
-		permisoSC.tipo=1;
-		msgsnd(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),0);
-	}
-	sem_post(sem);
-	printf("Algoritmo internodo\n");
 	}
 }

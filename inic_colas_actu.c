@@ -53,7 +53,7 @@ int main (int argc,int *argv[]){
 
     printf("Linea 50\n");
 
-  id = TOKEN;
+  id = 10;
   key =   key = ftok(path,id);
   printf("key %d\n",key);
   id_cola = msgget (key, 0666| IPC_CREAT);
@@ -72,10 +72,10 @@ int main (int argc,int *argv[]){
   testigo.numNodLec = 0;
 
   msgsnd(id_cola,(struct msgbuf *)&testigo,sizeof(testigo),0);
-
+/*
   for(i=1;i<5;i++){
 	for(j=i+1;j<6;j++){
-      id = INTERNODOS*i + j;
+      id = 200*i + j;
       key = ftok(path,id);
       printf("key %d\n",key);
   		id_cola = msgget (key, 0666| IPC_CREAT);
@@ -87,18 +87,18 @@ int main (int argc,int *argv[]){
   		}
   	}
   }
-
+*/
   permisoSC.tipo = 1;
 
    int id_nodo;
   for(i=0;i<INTRANODOS;i++){
    id_nodo = i+1;
-  	id = 201+i;
+  	id = 25+i;
     key = ftok(path,id);
     printf("key %d\n",key);
   	id_cola = msgget (key, 0666| IPC_CREAT);
-  	msgctl(id_cola, IPC_RMID, NULL);
-  	id_cola = msgget (key, 0666| IPC_CREAT);
+  	//msgctl(id_cola, IPC_RMID, NULL);
+  	//id_cola = msgget (key, 0666| IPC_CREAT);
   	if (id_cola == -1){
   		printf("Error al generar la cola.\n");
                 exit (-1);
@@ -110,7 +110,7 @@ int main (int argc,int *argv[]){
 
 //	CLAVE 30[12345] PARA numLec
 
-	id=300+i;
+	id=35+i;
   key0=ftok(path,id);
   printf("key0 %d\n",key0);
 	shmid0=shmget(key0,sizeof(int),0666| IPC_CREAT);
@@ -128,12 +128,12 @@ int main (int argc,int *argv[]){
  		exit(1);
   	}
   printf("Linea 118\n");
-	shm0[0] = 0;
+	//shm0[0] = 0;
   printf("Linea 120\n");
 
 //	CLAVE 40[12345] PARA escritoresEnCola 
 
-	id=400 + i;
+	id=45+i;
   key1=ftok(path,id);
   printf("key1 %d\n",key1);
 	shmid1=shmget(key1,sizeof(int),0666| IPC_CREAT);
@@ -154,10 +154,10 @@ int main (int argc,int *argv[]){
       printf("Linea 142\n");
 
   	
-	shm1[0] = 0;
+	//shm1[0] = 0;
 
 //	SEMAFORO MUTEX NUMLEC
-        id=500 + i;
+        id=55+i;
         key2=ftok(path,id);
         printf("key2 %d\n",key2);
         shmid2=shmget(key2,sizeof(sem_t),0666| IPC_CREAT);
@@ -184,7 +184,7 @@ int main (int argc,int *argv[]){
 
 //	SEMAFORO MUTEX ESCRITORESENCOLA
   
-        id= 700 + i;
+        id= 65+i;
         key3=ftok(path,id);
         printf("key3 %d\n",key3);
         shmid3=shmget(key3,sizeof(sem_t), 0666| IPC_CREAT);

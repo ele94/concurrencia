@@ -74,12 +74,6 @@
 #define SEM_RECEIVE5 "/receiveCin"
 #define SEM_AV5 "/avisoCin"
 
-#define MSG_EXCEPT 020000
-
-struct permisoSC{
-  long tipo;
-};
-
 //semaforos
 sem_t * sem_peticionesLectores;
 sem_t * sem_peticionesEscritores;
@@ -284,7 +278,7 @@ int main(char argc, char * argv[]){
   esperandoAviso = (int*) shmat(shmid, NULL, 0);
 
 	
-	id = 120;
+	id = 17;
 	key = ftok(path,id);
 	int cola_token = msgget(key, 0666| IPC_CREAT);
 	printf("cola_token %d\n",cola_token);
@@ -425,73 +419,9 @@ if(id_nodo==5){
 		//sem aviso
 	sem_aviso = sem_open(SEM_AV5, 0);
 }
-
-
-//INIC DEL INTRANODO
-int id_cola_aux[1];
-	int *id_cola, *numLec;
-	int idqueue;
-	sem_t *sem;
-        struct permisoSC permisoSC;
-
-	
-
-	id_cola = id_cola_aux;
-
-
-        key = ftok(path,15+id_nodo);
-        id_cola[0] = msgget (key, 0600 | IPC_CREAT);
-	idqueue=id_cola[0];
-
-
-	//CLAVE 25 PARA numLec
-        key = ftok(path,25+id_nodo);
-
-        shmid=shmget(key,sizeof(int),IPC_CREAT | 0666);
-	if(shmid<0){
-        	  perror("shmget");
-        	  exit(1);
-  	}
-
-	numLec=(int *)shmat(shmid, NULL, 0);
-	if(*numLec == -1) {
-        	perror("shmat");
-        	exit(1);
-  	}
-
-	//SEMAFORO MUTEX PARA NUMLEC
-        key = ftok(path,45+id_nodo);
-
-        shmid=shmget(key,sizeof(sem_t),IPC_CREAT | 0666);
-
-        if(shmid<0){
-                perror("shmget");
-        	exit(1);
-        }
-
-        sem=(sem_t *)shmat(shmid, NULL, 0);
-        if(sem == (sem_t *)-1) {
-                perror("shmat");
-                exit(1);
-        }
 	
 
 	while(1){
-
-
-		//****************** INICIO DEL PREPROTOCOLO DEL INTRANODO ********************************//
-
-			printf("Lector en el nodo %i sin hacer nada\n",id_nodo);
-        getchar();
-        printf("Lector en la cola del nodo %i\n", id_nodo);
-		msgrcv(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),(long)3,0 | MSG_EXCEPT);
-		if(permisoSC.tipo == 1){
-		printf("Algoritmo internodo\n");
-		printf("Eres el primer lector! Accediendo a la seccion critica internodo...\n");
-	
-
-
-		/********************** FIN DEL PREPROTOCOLO DEL INTRANODO ****************************/
 
 		printf("Pulse la tecla ENTER para intentar entrar a la sección crítica.\n");
 		int entrar = getchar();
@@ -610,46 +540,14 @@ int id_cola_aux[1];
 			sem_post(sem_hasToken);
 		}
 
-		}
+
 		//FIN SENDTOKEN
-
-		/******************************************* PREPROTOCOLO INTRANODO SEGUNDA PARTE *****************************/
-		sem_wait(sem);
-        numLec[0]++;
-		sem_post(sem);
-	
-		permisoSC.tipo=2;
-		msgsnd(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),0);
-        printf("Hay %i lectores en la cola\n" ,numLec[0]);
-
-        printf("Lector leyendo en el nodo %i\n", id_nodo);
-		getchar();
-
-		/****************************************** FIN DEL PREPROTOCOLO INTRANODO SEGUNDA PARTE *******************/
-
-		    msgrcv(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),(long)2,0);
-	
-		sem_wait(sem);
-        numLec[0]--;
-		sem_post(sem);
-        
-		printf("Hay %i lectores en la cola\n", numLec[0]);
-	
-		sem_wait(sem);
-		if(numLec[0]){
-		permisoSC.tipo=2;
-                msgsnd(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),0);
-        }
-        else{
-        	printf("Algoritmo postprotocolo\n");
 		
 		/*******************************************  FIN DEL PREPROTOCOLO ****************************************************/
 
 
 		printf("Lector leyendo.... Pulse la tecla ENTER para salir de la sección crítica.\n");
 		int salir = getchar();
-
-		/********************************** INICIO DEL POSTPROTOCOLO INTRANODO PRMIERA PARTE *************************++/
 
 		/******************************************* INICIO DEL POSTPROTOCOLO ***************************************************/
 
@@ -838,12 +736,6 @@ int id_cola_aux[1];
 		}
 
 		/********************************************FIN DEL POSTPROTOCOLO ************************************************************/
-
-		/*************************** INICIO DEL POSTPROTOCOLO INTRANODO PARTE 2 ****************************************/
-		permisoSC.tipo=1;
-        msgsnd(idqueue,(struct msgbuf *)&permisoSC,sizeof(permisoSC),0);
-		}
-			sem_post(sem);
 
 	}
 }
