@@ -666,6 +666,7 @@ if(id_nodo==5){
 				}
 			}
 			if(hayPet == 0){
+				if(*numNodLec!=0){
 			//bloquearse esperando hasta petición
 					sem_wait(sem_esperandoAviso);
 					printf("Esperando aviso...\n");
@@ -679,6 +680,7 @@ if(id_nodo==5){
 					sem_wait(sem_esperandoAviso);
 					*esperandoAviso = 0;
 					sem_post(sem_esperandoAviso);
+				}
 				}
 
 		} else {
