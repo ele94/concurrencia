@@ -593,6 +593,8 @@ if(id_nodo==5){
 		sem_wait(sem_numNodLec);
 		testigo.numNodLec = (*numNodLec);
 		sem_post(sem_numNodLec);
+
+		int hayPet = 0;
 		
 		for(id_nodo_sig=0; id_nodo_sig < 5; id_nodo_sig++){
 			if( (id_nodo_sig + 1) == id_nodo ) continue;
@@ -602,7 +604,7 @@ if(id_nodo==5){
 			if(peticionesEscritores[id_nodo_sig] > servidosEscritores[id_nodo_sig]){
 				sem_post(sem_peticionesEscritores);
 				sem_post(sem_servidosEscritores);
-
+				hayPet = 1;
 
 				sem_wait(sem_numNodLec);
 				if((*numNodLec) == 0){
@@ -620,31 +622,10 @@ if(id_nodo==5){
 					sem_wait(sem_hasToken); //repasar este semáforo
 					*hasToken = 0;
 					sem_post(sem_hasToken); //repasar este semáforo
-					break;
-				} else {
-					printf("El numero de lectores leyendo es %d\n",*numNodLec);
+				} else {}
+					printf("No se puede mandar el testigo porque l numero de lectores leyendo es %d\n",*numNodLec);
 					sem_post(sem_numNodLec);
 
-					//bloquearse esperando hasta petición
-					sem_wait(sem_esperandoAviso);
-					printf("Esperando aviso...\n");
-					*esperandoAviso = 1;
-					sem_post(sem_esperandoAviso);
-					printf("No se para por culpa del semaforo palabrita del nino jesus\n");
-
-					msgrcv(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0, 0);
-					printf("Aviso recibido! Liberando testigo...\n");
-
-					sem_wait(sem_esperandoAviso);
-					*esperandoAviso = 0;
-					sem_post(sem_esperandoAviso);
-
-					printf("Mandando el testigo al proceso %d en la cola %d...\n",id_nodo_sig+1,cola_token);
-					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
-
-					sem_wait(sem_hasToken); //repasar este semáforo
-					*hasToken = 0;
-					sem_post(sem_hasToken); //repasar este semáforo
 					break;
 				}
 			} else {
@@ -665,6 +646,7 @@ if(id_nodo==5){
 				if(peticionesLectores[id_nodo_sig] > servidosLectores[id_nodo_sig]){
 					sem_post(sem_peticionesLectores);
 					sem_post(sem_servidosLectores);
+					hayPet = 1;
 
 					testigo.mtype = id_nodo_sig + 1;
 					sem_wait(sem_servidosLectores);
@@ -683,6 +665,30 @@ if(id_nodo==5){
 					sem_post(sem_servidosLectores);
 				}
 			}
+			if(hasPet == 0){
+			//bloquearse esperando hasta petición
+					sem_wait(sem_esperandoAviso);
+					printf("Esperando aviso...\n");
+					*esperandoAviso = 1;
+					sem_post(sem_esperandoAviso);
+					printf("No se para por culpa del semaforo palabrita del nino jesus\n");
+
+					msgrcv(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0, 0);
+					printf("Aviso recibido! Liberando testigo...\n");
+
+					sem_wait(sem_esperandoAviso);
+					*esperandoAviso = 0;
+					sem_post(sem_esperandoAviso);
+
+					printf("Mandando el testigo al proceso %d en la cola %d...\n",id_nodo_sig+1,cola_token);
+					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
+
+					sem_wait(sem_hasToken); //repasar este semáforo
+					*hasToken = 0;
+					sem_post(sem_hasToken); //repasar este semáforo
+				}
+
+
 		} else {
 			sem_post(sem_hasToken);
 		}
