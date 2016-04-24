@@ -224,8 +224,7 @@ int main(char argc, char * argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  numNodLec = returnPtr;
+  numNodLec = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si tenemos el testigo
   id = 60 + 1 * id_nodo;
@@ -233,8 +232,7 @@ int main(char argc, char * argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);   
-  hasToken = returnPtr;
+  hasToken = (int*) shmat(shmid, NULL, 0);
 
 
   //Para saber el número de peticiones de nuestro nodo
@@ -243,8 +241,7 @@ int main(char argc, char * argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  myNum = returnPtr;
+  myNum = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si nuestro nodo está en SC
   id = 80 + 1 * id_nodo;
@@ -253,17 +250,15 @@ int main(char argc, char * argv[]){
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
   printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  inSC = returnPtr;
+  inSC = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si el representante es un lector o un escritor
   id = 90 + 1 * id_nodo;
   key = ftok(path,id);
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
-    printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  lectorOEscritor = returnPtr;
+   printf("El shmid es %d\n",shmid);
+  lectorOEscritor = (int*) shmat(shmid, NULL, 0);
 
 
 	
@@ -393,7 +388,7 @@ if(id_nodo==5){
 			(*myNum)++;
 			printf("Creada una peticion con numero %d\n",*myNum);
 			sem_wait(sem_lectorOEscritor);
-			(*lectorOEscritor) = 1;
+			*lectorOEscritor = 1;
 			sem_post(sem_lectorOEscritor);
 
 			peticion.myID = id_nodo;
@@ -420,6 +415,10 @@ if(id_nodo==5){
 			sem_post(sem_hasToken);
 			printf("Que bien! Tienes el testigo!\n");
 		}
+
+		sem_wait(sem_lectorOEscritor);
+		*lectorOEscritor = 1;
+		sem_post(sem_lectorOEscritor);
 
 		sem_wait(sem_hasToken);
 		*hasToken = 1;

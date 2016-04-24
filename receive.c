@@ -116,6 +116,7 @@ typedef struct request_th{
 
 struct warning{
   long mtype;
+  int num;
 }aviso;
 
 struct token{
@@ -197,23 +198,30 @@ void thread_receive(void *ptr){
 
       sem_wait(sem_hasToken);
       if(*hasToken == 1){
+        printf("Tengo el token\n");
          sem_post(sem_hasToken);
          if(*lectorOEscritor == 0){
+            printf("Soy un proceso lector\n");
             sem_wait(sem_esperandoAviso);
             if(*esperandoAviso == 1) {
             sem_post(sem_esperandoAviso);
             printf("Mandando aviso para que el lector envie el token\n");
+            aviso.mtype = id_nodo;
+            aviso.num = 0;
              msgsnd(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0);
             }
             else{
+              printf("No hay avisos esperando a ser atendidos\n");
               sem_post(sem_esperandoAviso);
               printf("Entrando en el sendToken 2 para ver si se puede mandar el testigo a %d\n",peticion.myID);
               sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
             }  
 	     }
 	     else{ 
+        printf("Soy un proces escritor\n");
          sem_wait(sem_inSC);
          if(*inSC == 0) {
+            printf("No estoy en la SC\n");
             sem_post(sem_inSC);
             printf("Entrando en el sendToken 3 para ve rsi se puede mandar el testigo a %d\n",peticion.myID);
             sendToken(peticion.myID,peticion.lectorOEscritor,peticion.myNum);
@@ -379,8 +387,7 @@ int main (char argc, char *argv[]){
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
   printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  inSC = returnPtr;
+  inSC = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si el representante es un lector o un escritor
   id = 90 + 1 * id_nodo;
@@ -388,16 +395,14 @@ int main (char argc, char *argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  lectorOEscritor = returnPtr;
+  lectorOEscritor = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si hay peticiones de otros nodos despues de que el ultimo lector salga de la SC
   id = 100 + 1 * id_nodo;
   key = ftok(path,id);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  esperandoAviso = returnPtr;
+  esperandoAviso = (int*) shmat(shmid, NULL, 0);
 
   //Colas del testigo y del aviso de peticion de testigo
   id = 17;

@@ -102,6 +102,7 @@ struct request{
 
 struct warning{
 	long mtype;
+	int num;
 };
 
 struct token{
@@ -225,8 +226,7 @@ int main(char argc, char * argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  numNodLec = returnPtr;
+  numNodLec = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si tenemos el testigo
   id = 60 + 1 * id_nodo;
@@ -234,8 +234,7 @@ int main(char argc, char * argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);   
-  hasToken = returnPtr;
+  hasToken = (int*) shmat(shmid, NULL, 0);  
 
 
   //Para saber el número de peticiones de nuestro nodo
@@ -244,8 +243,7 @@ int main(char argc, char * argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  myNum = returnPtr;
+  myNum = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si nuestro nodo está en SC
   id = 80 + 1 * id_nodo;
@@ -254,8 +252,7 @@ int main(char argc, char * argv[]){
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
   printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  inSC = returnPtr;
+  inSC = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si el representante es un lector o un escritor
   id = 90 + 1 * id_nodo;
@@ -263,16 +260,14 @@ int main(char argc, char * argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  lectorOEscritor = returnPtr;
+  lectorOEscritor = (int*) shmat(shmid, NULL, 0);
 
   //Para saber si hay peticiones de otros nodos despues de que el ultimo lector salga de la SC
   id = 100 + 1 * id_nodo;
   key = ftok(path,id);
   shmid = shmget(key, sizeof(int), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  esperandoAviso = returnPtr;
+  esperandoAviso = (int*) shmat(shmid, NULL, 0);
 
 	
 	id = 17;
@@ -443,6 +438,8 @@ if(id_nodo==5){
 		 	(*numNodLec) = testigo.numNodLec;
 		 	printf("Actualizando servidosLectores ahora que hemos recibido el testigo...\n");
 		 	servidosLectores[id_nodo-1] = (*myNum);
+		 	*numNodLec = testigo.numNodLec;
+		 	printf("Numero de lectores leyendo: %d\n",*numNodLec);
 
 		} else {
 			printf("Tienes el testigo! Que suerte!\n");
@@ -453,20 +450,80 @@ if(id_nodo==5){
 		*hasToken = 1;
 		sem_post(sem_hasToken);
 		sem_wait(sem_numNodLec);
-		*numNodLec = testigo.numNodLec;
 		(*numNodLec)++;
+		printf("Numero de lectores leyendo conmigo: %d\n",*numNodLec);
 		sem_post(sem_numNodLec);
 		sem_wait(sem_inSC);
 		*inSC = 1;
 		sem_post(sem_inSC);
 
+		
+		//SENDTOKEN
+				//sendToken()
+		//Hay que ver lo de reservar y compartir memoria para el array, igual da violación de segmento.
+		printf("Comprobando si hay peticiones de lectores pendientes...\n");
+		sem_wait(sem_servidosLectores);
+		 memcpy(testigo.servidosLectores, servidosLectores, sizeof(int[5]));
+		//testigo.servidosLectores[id_nodo-1] = servidosLectores[id_nodo-1];
+		sem_post(sem_servidosLectores);
+
+		sem_wait(sem_servidosEscritores);
+		 memcpy(testigo.servidosEscritores, servidosEscritores, sizeof(int[5]));
+		//testigo.servidosEscritores[id_nodo-1] = servidosEscritores[id_nodo-1];
+		sem_post(sem_servidosEscritores);
+		
+		printf("Actualizando numero de lectores en el token...\n");
+		sem_wait(sem_numNodLec);
+		testigo.numNodLec = (*numNodLec);
+		sem_post(sem_numNodLec);
+		
+		sem_wait(sem_hasToken);
+		if (*hasToken != 0) {
+			sem_post(sem_hasToken);
+
+			for(id_nodo_sig=0; id_nodo_sig < 5; id_nodo_sig++){
+				if( (id_nodo_sig + 1) == id_nodo ) continue;
+
+				sem_wait(sem_peticionesLectores);
+				sem_wait(sem_servidosLectores);
+				if(peticionesLectores[id_nodo_sig] > servidosLectores[id_nodo_sig]){
+					sem_post(sem_peticionesLectores);
+					sem_post(sem_servidosLectores);
+
+					testigo.mtype = id_nodo_sig + 1;
+					sem_wait(sem_servidosLectores);
+					servidosLectores[id_nodo_sig] = peticionesLectores[id_nodo_sig];
+					testigo.servidosLectores[id_nodo_sig] = servidosLectores[id_nodo_sig];
+					sem_post(sem_servidosLectores);
+					printf("Mandando el testigo al lector pendiente...\n");
+					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
+
+					sem_wait(sem_hasToken); //repasar este semáforo
+					*hasToken = 0;
+					sem_post(sem_hasToken); //repasar este semáforo
+					break;
+				} else {
+					sem_post(sem_peticionesLectores);
+					sem_post(sem_servidosLectores);
+				}
+			}
+		} else {
+			sem_post(sem_hasToken);
+		}
+
+
+		//FIN SENDTOKEN
+		
+
+
 		printf("Lector leyendo.... Pulse la tecla ENTER para salir de la sección crítica.\n");
 		int salir = getchar();
-
 
 		sem_wait(sem_servidosLectores);
 		servidosLectores[id_nodo-1] = (*myNum);
 		sem_post(sem_servidosLectores);
+
+
 		sem_wait(sem_hasToken);
 		if(!(*hasToken)){
 			printf("Tsk te han vuelto a quitar el testigo? Espera que esto lo arreglo yo. Pidiendo el testigo...\n");
@@ -509,10 +566,11 @@ if(id_nodo==5){
 		*hasToken = 1;
 		sem_post(sem_hasToken);
 
+		
 		sem_wait(sem_numNodLec);
-		*numNodLec = testigo.numNodLec;
 		(*numNodLec)--;
 		sem_post(sem_numNodLec);
+		 
 
 		sem_wait(sem_inSC);
 		*inSC = 0;
@@ -548,6 +606,7 @@ if(id_nodo==5){
 
 				sem_wait(sem_numNodLec);
 				if((*numNodLec) == 0){
+					printf("El numero de lectores es %d\n",*numNodLec);
 					sem_post(sem_numNodLec);
 				
 					testigo.mtype = id_nodo_sig + 1;
@@ -555,7 +614,7 @@ if(id_nodo==5){
 					servidosEscritores[id_nodo_sig] = peticionesEscritores[id_nodo_sig];
 					testigo.servidosEscritores[id_nodo_sig] = servidosEscritores[id_nodo_sig];
 					sem_post(sem_servidosEscritores);
-					printf("Mandando el testigo al proceso %d en la c ola %d...\n",id_nodo_sig+1,cola_token);
+					printf("Mandando el testigo al proceso %d en la cola %d...\n",id_nodo_sig+1,cola_token);
 					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
 
 					sem_wait(sem_hasToken); //repasar este semáforo
@@ -563,6 +622,7 @@ if(id_nodo==5){
 					sem_post(sem_hasToken); //repasar este semáforo
 					break;
 				} else {
+					printf("El numero de lectores leyendo es %d\n",*numNodLec);
 					sem_post(sem_numNodLec);
 
 					//bloquearse esperando hasta petición
@@ -570,13 +630,21 @@ if(id_nodo==5){
 					printf("Esperando aviso...\n");
 					*esperandoAviso = 1;
 					sem_post(sem_esperandoAviso);
+					printf("No se para por culpa del semaforo palabrita del nino jesus\n");
 
-					msgrcv(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), (long)4, 0);
+					msgrcv(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0, 0);
 					printf("Aviso recibido! Liberando testigo...\n");
 
 					sem_wait(sem_esperandoAviso);
 					*esperandoAviso = 0;
 					sem_post(sem_esperandoAviso);
+
+					printf("Mandando el testigo al proceso %d en la cola %d...\n",id_nodo_sig+1,cola_token);
+					msgsnd(cola_token, (struct msgbuf *) &testigo, sizeof(testigo), 0);
+
+					sem_wait(sem_hasToken); //repasar este semáforo
+					*hasToken = 0;
+					sem_post(sem_hasToken); //repasar este semáforo
 					break;
 				}
 			} else {
