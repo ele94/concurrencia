@@ -165,7 +165,9 @@ void thread_receive(void *ptr){
       sem_wait(sem_peticionesEscritores);
       if(peticion.myNum > peticionesEscritores[peticion.myID-1]){
         peticionesEscritores[peticion.myID-1]=peticion.myNum;
-        printf("Actualizado el numero de peticion a peticion.myNum\n");
+        printf("Actualizado el numero de peticion de escritores a %d \n", peticion.myNum);
+            printf("Escritores pedidos: %d %d %d %d %d\n",peticionesEscritores[0],peticionesEscritores[1],peticionesEscritores[2],peticionesEscritores[3],peticionesEscritores[4]);
+    printf("Escritores servidos: %d %d %d %d %d\n",servidosEscritores[0],servidosEscritores[1],servidosEscritores[2],servidosEscritores[3],servidosEscritores[4]);
       }
       sem_post(sem_peticionesEscritores);
 
@@ -180,13 +182,17 @@ void thread_receive(void *ptr){
       else{
          sem_post(sem_inSC);
          sem_post(sem_hasToken);
+         printf("Hay un proceso en la SC asi que no se puede mandar el testigo! Lo siento!\n");
       }
     }
     
     //si recibimos una peticion de un lector
     else if(peticion.lectorOEscritor == 0){
       sem_wait(sem_peticionesLectores);
-      peticionesLectores[peticion.myID] =  peticionesLectores[peticion.myID]>peticion.myNum ? peticionesLectores[peticion.myID] : peticion.myNum;
+      if(peticion.myNum > peticionesLectores[peticion.myID-1]){
+        peticionesLectores[peticion.myID-1]=peticion.myNum;
+        printf("Actualizado el numero de peticion de lectores a %d \n", peticion.myNum);
+      }
       sem_post(sem_peticionesLectores);
 
       sem_wait(sem_hasToken);
@@ -309,8 +315,7 @@ int main (char argc, char *argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int[5]), shmflg);
   printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  peticionesLectores = returnPtr;
+  peticionesLectores = (int*) shmat(shmid, NULL, 0);
 
   //Para compartir peticionesEscritores:
   id = 20 + 1 * id_nodo;
@@ -318,8 +323,7 @@ int main (char argc, char *argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int[5]), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  peticionesEscritores = returnPtr;
+  peticionesEscritores = (int*) shmat(shmid, NULL, 0);
 
   //Para compartir servidosLectores
   id = 30 + 1 * id_nodo;
@@ -327,8 +331,7 @@ int main (char argc, char *argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int[5]), shmflg);
   printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  servidosLectores = returnPtr;
+  servidosLectores = (int*) shmat(shmid, NULL, 0);
 
   //Para compartir servidosEscritores
   id = 40 + 1 * id_nodo;
@@ -336,8 +339,7 @@ int main (char argc, char *argv[]){
   printf("La key es %d\n",key);
   shmid = shmget(key, sizeof(int[5]), shmflg);
     printf("El shmid es %d\n",shmid);
-  returnPtr = (int*) shmat(shmid, NULL, 0);
-  servidosEscritores = returnPtr;
+  servidosEscritores = (int*) shmat(shmid, NULL, 0);
 
   //Para numero de lectores en SC
   id = 50 + 1 * id_nodo;
@@ -395,7 +397,7 @@ int main (char argc, char *argv[]){
   esperandoAviso = returnPtr;
 
   //Colas del testigo y del aviso de peticion de testigo
-  id = 89;
+  id = 1;
   key = ftok(path,id);
   cola_token = msgget(key, shmflg);
   if(cola_token == 0){
@@ -563,10 +565,10 @@ int main (char argc, char *argv[]){
   int petEsc[] = {0,0,0,0,0};
   int servLec[] = {0,0,0,0,0};
   int servEsc[] = {0,0,0,0,0};
-  peticionesLectores = malloc( sizeof(int[5]) );
-  peticionesEscritores = malloc( sizeof(int[5]) );
-  servidosLectores = malloc( sizeof(int[5]) );
-  servidosEscritores = malloc( sizeof(int[5]) );
+  //peticionesLectores = malloc( sizeof(int[5]) );
+  //peticionesEscritores = malloc( sizeof(int[5]) );
+  //servidosLectores = malloc( sizeof(int[5]) );
+  //servidosEscritores = malloc( sizeof(int[5]) );
   memcpy(petLec, peticionesLectores, sizeof(int[5]));
   memcpy(petEsc, peticionesEscritores, sizeof(int[5]));
   memcpy(servLec, servidosLectores, sizeof(int[5]));
