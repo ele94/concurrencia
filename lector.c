@@ -21,6 +21,7 @@
 #define SEM_LECESC1 "/lectorOEscritorUno"
 #define SEM_AVISO1 "/esperandoAvisoUno"
 #define SEM_RECEIVE1 "/receiveUno"
+#define SEM_AV1 "/avisoUno"
 
 #define SEM_PETLEC2 "/peticionesLectoresDos"
 #define SEM_PETESC2 "/peticionesEscritoresDos"
@@ -32,6 +33,8 @@
 #define SEM_LECESC2 "/lectorOEscritorDos"
 #define SEM_AVISO2 "/esperandoAvisoDos"
 #define SEM_RECEIVE2 "/receiveDos"
+#define SEM_AV2 "/avisoDos"
+
 
 #define SEM_PETLEC3 "/peticionesLectoresTres"
 #define SEM_PETESC3 "/peticionesEscritoresTres"
@@ -43,6 +46,8 @@
 #define SEM_LECESC3 "/lectorOEscritorTres"
 #define SEM_AVISO3 "/esperandoAvisoTres"
 #define SEM_RECEIVE3 "/receiveTres"
+#define SEM_AV3 "/avisoTres"
+
 
 #define SEM_PETLEC4 "/peticionesLectoresCua"
 #define SEM_PETESC4 "/peticionesEscritoresCua"
@@ -54,6 +59,8 @@
 #define SEM_LECESC4 "/lectorOEscritorCua"
 #define SEM_AVISO4 "/esperandoAvisoCua"
 #define SEM_RECEIVE4 "/receiveCua"
+#define SEM_AV4 "/avisoCuatro"
+
 
 #define SEM_PETLEC5 "/peticionesLectoresCin"
 #define SEM_PETESC5 "/peticionesEscritoresCin"
@@ -65,6 +72,7 @@
 #define SEM_LECESC5 "/lectorOEscritorCin"
 #define SEM_AVISO5 "/esperandoAvisoCin"
 #define SEM_RECEIVE5 "/receiveCin"
+#define SEM_AV5 "/avisoCin"
 
 //semaforos
 sem_t * sem_peticionesLectores;
@@ -76,6 +84,7 @@ sem_t * sem_hasToken;
 sem_t * sem_inSC;
 sem_t * sem_lectorOEscritor;
 sem_t * sem_esperandoAviso;
+sem_t * sem_aviso;
 
 //memoria compartida a nivel de nodo: punteros a esa memoria
 int * peticionesLectores;
@@ -316,6 +325,8 @@ if(id_nodo==1){
 	sem_lectorOEscritor = sem_open(SEM_LECESC1, 0);		
 	//Semáforo Aviso
 	sem_esperandoAviso = sem_open(SEM_AVISO1, 0);
+	//sem aviso
+	sem_aviso = sem_open(SEM_AV1, 0);
 }
 if(id_nodo==2){
 	//SEMAFOROS (los he movido todos aqui para que sean faciles de mover)
@@ -337,6 +348,8 @@ if(id_nodo==2){
 	sem_lectorOEscritor = sem_open(SEM_LECESC2, 0);		
 	//Semáforo Aviso
 	sem_esperandoAviso = sem_open(SEM_AVISO2, 0);
+		//sem aviso
+	sem_aviso = sem_open(SEM_AV2, 0);
 	}
 if(id_nodo==3){
 //SEMAFOROS (los he movido todos aqui para que sean faciles de mover)
@@ -358,6 +371,8 @@ if(id_nodo==3){
 	sem_lectorOEscritor = sem_open(SEM_LECESC3, 0);		
 	//Semáforo Aviso
 	sem_esperandoAviso = sem_open(SEM_AVISO3, 0);
+		//sem aviso
+	sem_aviso = sem_open(SEM_AV3, 0);
 }
 if(id_nodo==4){
 //SEMAFOROS (los he movido todos aqui para que sean faciles de mover)
@@ -379,6 +394,8 @@ if(id_nodo==4){
 	sem_lectorOEscritor = sem_open(SEM_LECESC4, 0);		
 	//Semáforo Aviso
 	sem_esperandoAviso = sem_open(SEM_AVISO4, 0);
+		//sem aviso
+	sem_aviso = sem_open(SEM_AV4, 0);
 }
 if(id_nodo==5){
 //SEMAFOROS (los he movido todos aqui para que sean faciles de mover)
@@ -400,6 +417,8 @@ if(id_nodo==5){
 	sem_lectorOEscritor = sem_open(SEM_LECESC5, 0);		
 	//Semáforo Aviso
 	sem_esperandoAviso = sem_open(SEM_AVISO5, 0);
+		//sem aviso
+	sem_aviso = sem_open(SEM_AV5, 0);
 }
 	
 
@@ -674,7 +693,8 @@ if(id_nodo==5){
 					sem_post(sem_esperandoAviso);
 					printf("No se para por culpa del semaforo palabrita del nino jesus\n");
 
-					msgrcv(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0, 0);
+					//msgrcv(cola_warning, (struct msgbuf *) &aviso, sizeof(aviso), 0, 0);
+					sem_wait(sem_aviso);
 					printf("Aviso recibido! Continuando ejecucion...\n");
 
 					sem_wait(sem_esperandoAviso);
